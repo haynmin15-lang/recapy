@@ -204,6 +204,15 @@ block:"center"
 });
 }
 </script>
+  <script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+
+  const SUPABASE_URL = 'https://jqsawjvtshlaqyhqluxb.supabase.co'
+  const SUPABASE_KEY = 'sb_publishable_gtDqgovcoxJSNsXUZCkPDg_7JYv9Hed'
+
+  window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+  console.log('Supabase connected')
+  </script>
 </body>
   </html>
   
