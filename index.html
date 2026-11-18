@@ -205,13 +205,40 @@ block:"center"
 }
 </script>
   <script type="module">
-  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
+import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
-  const SUPABASE_URL = 'https://jqsawjvtshlaqyhqluxb.supabase.co'
-  const SUPABASE_KEY = 'sb_publishable_gtDqgovcoxJSNsXUZCkPDg_7JYv9Hed'
+const SUPABASE_URL = 'https://jqsawjvtshlaqyhqluxb.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_gtDqgovcoxJSNsXUZCkPDg_7JYv9Hed'
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
+window.supabase = supabase
 
-  window.supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
-  console.log('Supabase connected')
+document.body.style.visibility = 'hidden'
+
+const { data: { session } } = await supabase.auth.getSession()
+
+if (!session) {
+  location.replace('login.html')
+} else {
+  const user = session.user
+  const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email
+  const box = document.querySelector('.user')
+  box.querySelector('.avatar').textContent = name.charAt(0).toUpperCase()
+  box.querySelector('span').textContent = user.email
+
+  const btn = document.createElement('button')
+  btn.textContent = 'Log out'
+  btn.style.cssText = 'background:#1c1c1c;border:1px solid #333;color:#ddd;font-size:11px;padding:7px 11px;border-radius:7px;margin-left:6px'
+  btn.onclick = async () => {
+    await supabase.auth.signOut()
+    location.replace('login.html')
+  }
+  box.appendChild(btn)
+  document.body.style.visibility = 'visible'
+}
+
+supabase.auth.onAuthStateChange((event) => {
+  if (event === 'SIGNED_OUT') location.replace('login.html')
+})
   </script>
 </body>
   </html>
