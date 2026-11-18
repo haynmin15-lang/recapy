@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090909">
+<title>RECAPY — Sign in</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+:root{--bg:#090909;--panel:#111;--panel2:#171717;--border:#262626;--text:#f5f5f5;--muted:#858585;--red:#ff3535}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif;min-height:100vh;display:grid;place-items:center;padding:20px}
+.wrap{width:100%;max-width:400px}
+.logo{display:flex;align-items:center;gap:10px;font-size:26px;font-weight:900;letter-spacing:-1px;justify-content:center;margin-bottom:8px}
+.logo-icon{background:var(--red);width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:19px}
+.tagline{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px}
+.tabs{display:flex;background:#0d0d0d;border:1px solid var(--border);border-radius:9px;padding:3px;margin-bottom:22px}
+.tab{flex:1;border:0;background:transparent;color:#999;font:600 13px Inter,Arial,sans-serif;padding:10px;border-radius:7px;cursor:pointer}
+.tab.active{background:var(--red);color:#fff}
+label{display:block;color:#aaa;font-size:12px;margin:14px 0 7px}
+input{width:100%;background:#141414;border:1px solid #333;color:var(--text);font:14px Inter,Arial,sans-serif;padding:13px;border-radius:8px;outline:none}
+input:focus{border-color:var(--red)}
+.btn{width:100%;border:0;background:var(--red);color:#fff;font:700 14px Inter,Arial,sans-serif;padding:14px;border-radius:8px;margin-top:20px;cursor:pointer}
+.btn:hover{background:#e52525}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.google{background:#fff;color:#111;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:0}
+.google:hover{background:#e8e8e8}
+.or{display:flex;align-items:center;gap:12px;color:#666;font-size:12px;margin:18px 0}
+.or::before,.or::after{content:"";flex:1;height:1px;background:var(--border)}
+.link{background:none;border:0;color:#ff7777;font:12px Inter,Arial,sans-serif;cursor:pointer;margin-top:14px;display:block;text-align:center;width:100%}
+.msg{display:none;margin-top:16px;padding:12px;border-radius:8px;font-size:12px;line-height:1.6}
+.msg.err{display:block;background:#2a1212;border:1px solid #5a2020;color:#ff9a9a}
+.msg.ok{display:block;background:#10241a;border:1px solid #1f5a3a;color:#8fe0b4}
+.hidden{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo"><div class="logo-icon">R</div>RECAPY</div>
+  <p class="tagline">Turn your voice into visual stories</p>
+
+  <div class="card">
+    <div class="tabs">
+      <button class="tab active" id="tabLogin" type="button">Log in</button>
+      <button class="tab" id="tabRegister" type="button">Create account</button>
+    </div>
+
+    <button class="btn google" id="googleBtn" type="button">
+      <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#EA4335" d="M24 9.5c3.5 0 6.6 1.2 9.1 3.6l6.8-6.8C35.8 2.4 30.3 0 24 0 14.6 0 6.5 5.4 2.6 13.2l7.9 6.1C12.4 13.6 17.7 9.5 24 9.5z"/><path fill="#4285F4" d="M46.5 24.5c0-1.6-.1-3.1-.4-4.5H24v9h12.7c-.6 3-2.3 5.5-4.8 7.2l7.6 5.9c4.4-4.1 7-10.1 7-17.6z"/><path fill="#FBBC05" d="M10.5 28.7c-.5-1.5-.8-3-.8-4.7s.3-3.2.8-4.7l-7.9-6.1C.9 16.5 0 20.1 0 24s.9 7.5 2.6 10.8l7.9-6.1z"/><path fill="#34A853" d="M24 48c6.5 0 11.9-2.1 15.9-5.8l-7.6-5.9c-2.1 1.4-4.9 2.3-8.3 2.3-6.3 0-11.6-4.1-13.5-9.8l-7.9 6.1C6.5 42.6 14.6 48 24 48z"/></svg>
+      Continue with Google
+    </button>
+
+    <div class="or">or use email</div>
+
+    <form id="authForm" novalidate>
+      <div id="nameRow" class="hidden">
+        <label for="name">Name</label>
+        <input id="name" type="text" autocomplete="name" placeholder="Your name">
+      </div>
+      <label for="email">Email</label>
+      <input id="email" type="email" autocomplete="email" placeholder="you@example.com">
+      <div id="passRow">
+        <label for="password">Password</label>
+        <input id="password" type="password" autocomplete="current-password" placeholder="At least 6 characters">
+      </div>
+      <button class="btn" id="submitBtn" type="submit">Log in</button>
+    </form>
+
+    <button class="link" id="forgotBtn" type="button">Forgot password?</button>
+    <div class="msg" id="msg"></div>
+  </div>
+</div>
+
+<script>
+var SUPABASE_URL = 'https://jqsawjvtshlaqyhqluxb.supabase.co';
+var SUPABASE_KEY = 'sb_publishable_gtDqgovcoxJSNsXUZCkPDg_7JYv9Hed';
+var HOME_PAGE = 'index.html';
+
+var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: { flowType: 'pkce', detectSessionInUrl: true, persistSession: true }
+});
+
+var mode = 'login';
+var $ = function (id) { return document.getElementById(id); };
+
+function show(text, type) {
+  var m = $('msg');
+  m.className = 'msg ' + type;
+  m.textContent = text;
+}
+function clearMsg() { $('msg').className = 'msg'; }
+
+function setMode(next) {
+  mode = next;
+  clearMsg();
+  $('tabLogin').classList.toggle('active', next === 'login');
+  $('tabRegister').classList.toggle('active', next === 'register');
+  $('nameRow').classList.toggle('hidden', next !== 'register');
+  $('passRow').classList.toggle('hidden', next === 'reset');
+  $('forgotBtn').classList.toggle('hidden', next === 'register');
+  $('password').autocomplete = next === 'register' ? 'new-password' : 'current-password';
+  $('submitBtn').textContent = next === 'login' ? 'Log in' : next === 'register' ? 'Create account' : 'Send reset link';
+  $('forgotBtn').textContent = next === 'reset' ? 'Back to log in' : 'Forgot password?';
+}
+
+$('tabLogin').onclick = function () { setMode('login'); };
+$('tabRegister').onclick = function () { setMode('register'); };
+$('forgotBtn').onclick = function () { setMode(mode === 'reset' ? 'login' : 'reset'); };
+
+function friendly(err) {
+  var t = (err && err.message) || 'Something went wrong. Try again.';
+  if (/invalid login/i.test(t)) return 'Email or password is wrong. Check both and try again.';
+  if (/already registered/i.test(t)) return 'This email already has an account. Use Log in instead.';
+  if (/email not confirmed/i.test(t)) return 'Confirm your email first. Check your inbox for the link.';
+  if (/password/i.test(t) && /6/.test(t)) return 'Password needs at least 6 characters.';
+  return t;
+}
+
+function goHome() { window.location.replace(HOME_PAGE); }
+
+$('authForm').addEventListener('submit', async function (e) {
+  e.preventDefault();
+  clearMsg();
+  var email = $('email').value.trim();
+  var password = $('password').value;
+  if (!email) { show('Enter your email.', 'err'); return; }
+  if (mode !== 'reset' && password.length < 6) { show('Password needs at least 6 characters.', 'err'); return; }
+
+  var btn = $('submitBtn');
+  btn.disabled = true;
+  try {
+    var res;
+    if (mode === 'login') {
+      res = await sb.auth.signInWithPassword({ email: email, password: password });
+      if (res.error) throw res.error;
+      goHome();
+    } else if (mode === 'register') {
+      res = await sb.auth.signUp({
+        email: email,
+        password: password,
+        options: {
+          data: { full_name: $('name').value.trim() },
+          emailRedirectTo: window.location.origin + window.location.pathname
+        }
+      });
+      if (res.error) throw res.error;
+      if (res.data.session) { goHome(); }
+      else { show('Account created. Open the confirmation link we emailed you, then log in.', 'ok'); }
+    } else {
+      res = await sb.auth.resetPasswordForEmail(email, {
+        redirectTo: window.location.origin + window.location.pathname
+      });
+      if (res.error) throw res.error;
+      show('Reset link sent. Check your inbox.', 'ok');
+    }
+  } catch (err) {
+    show(friendly(err), 'err');
+  } finally {
+    btn.disabled = false;
+  }
+});
+
+$('googleBtn').onclick = async function () {
+  clearMsg();
+  var res = await sb.auth.signInWithOAuth({
+    provider: 'google',
+    options: { redirectTo: window.location.origin + window.location.pathname }
+  });
+  if (res.error) show(friendly(res.error), 'err');
+};
+
+// Already signed in, or returning from Google / email link
+sb.auth.getSession().then(function (r) {
+  if (r.data && r.data.session) goHome();
+});
+sb.auth.onAuthStateChange(function (event, session) {
+  if (event === 'SIGNED_IN' && session) goHome();
+});
+</script>
+</body>
+  </html>
+  
