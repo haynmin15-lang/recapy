@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#090909">
+<title>RECAPY — AI Motion Studio</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
+:root {
+--bg:#090909;--panel:#111;--panel2:#171717;
+--border:#262626;--text:#f5f5f5;--muted:#858585;
+--red:#ff3535;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif;min-height:100vh}
+button{font-family:inherit;cursor:pointer}
+.app{display:flex;min-height:100vh}
+.sidebar{width:235px;background:#0d0d0d;border-right:1px solid var(--border);padding:25px 16px;display:flex;flex-direction:column;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:900;letter-spacing:-1px;margin:5px 8px 45px}
+.logo-icon{background:var(--red);width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:17px}
+.menu-label{color:#686868;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:0 10px;margin:20px 0 10px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 13px;margin:3px 0;color:#999;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer}
+.nav-item:hover,.nav-item.active{color:white;background:#202020}
+.nav-item.active{border-left:3px solid var(--red)}
+.sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:18px}
+.main{flex:1;min-width:0}
+.topbar{height:70px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 35px}
+.top-title{font-size:13px;color:#aaa}
+.user{display:flex;align-items:center;gap:10px;font-size:12px}
+.avatar{width:34px;height:34px;border-radius:50%;background:#292929;display:grid;place-items:center;font-weight:800}
+.content{max-width:1150px;padding:45px 35px;margin:auto}
+.eyebrow{color:var(--red);font-size:11px;font-weight:800;letter-spacing:2px;margin-bottom:16px}
+h1{font-size:clamp(32px,5vw,57px);line-height:1.08;letter-spacing:-2.5px;max-width:700px}
+h1 span{color:var(--red)}
+.subtitle{color:var(--muted);font-size:14px;line-height:1.8;margin-top:17px;max-width:560px}
+.section-heading{display:flex;align-items:center;justify-content:space-between;margin:40px 0 17px}
+.section-heading h2{font-size:16px}
+.section-heading p{font-size:11px;color:var(--muted)}
+.workspace{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:23px}
+.card-title{font-size:14px;font-weight:700;margin-bottom:7px}
+.card-desc{font-size:11px;color:var(--muted);line-height:1.7}
+.upload{margin-top:20px;border:1px dashed #484848;background:#141414;min-height:205px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;cursor:pointer}
+.upload:hover{border-color:var(--red)}
+.upload-icon{width:52px;height:52px;background:#252525;border-radius:15px;display:grid;place-items:center;font-size:24px;margin-bottom:14px}
+.upload strong{font-size:13px}
+.upload small{font-size:10px;color:var(--muted);margin-top:9px}
+#fileInput{display:none}
+.file-name{color:#ff7777;font-size:11px;margin-top:12px;word-break:break-all}
+.primary{border:0;background:var(--red);color:white;font-size:12px;font-weight:700;padding:13px 19px;border-radius:8px}
+.primary:hover{background:#e52525}
+.primary:disabled{opacity:.45;cursor:not-allowed}
+.full{width:100%;margin-top:18px}
+.setting-row{margin-top:22px}
+.setting-row label{display:block;color:#aaa;font-size:11px;margin-bottom:11px}
+.ratios{display:flex;gap:8px}
+.ratio{flex:1;background:#191919;border:1px solid #333;color:#aaa;padding:11px 5px;border-radius:7px;font-size:11px}
+.ratio.selected{border-color:var(--red);color:white;background:#291515}
+.info{margin-top:18px;padding:13px;background:#171717;border-radius:8px;color:#888;font-size:10px;line-height:1.7}
+.projects{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.project{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:18px}
+.project-icon{height:90px;background:linear-gradient(135deg,#262626,#101010);border-radius:8px;display:grid;place-items:center;font-size:28px;margin-bottom:14px}
+.project h3{font-size:12px}
+.project p{color:var(--muted);font-size:10px;margin-top:7px}
+.status{display:inline-block;font-size:9px;color:#aaa;background:#222;border-radius:20px;padding:5px 9px;margin-top:12px}
+.footer{color:#555;font-size:10px;text-align:center;padding:35px 0 15px}
+.toast{display:none;position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#242424;border:1px solid #444;padding:14px 19px;border-radius:9px;font-size:12px;z-index:10;width:max-content;max-width:90%}
+@media(max-width:800px){
+.sidebar{display:none}
+.topbar{height:60px;padding:0 18px}
+.content{padding:35px 17px}
+.workspace{grid-template-columns:1fr}
+.projects{grid-template-columns:1fr 1fr}
+h1{letter-spacing:-1.5px}
+}
+@media(max-width:420px){
+.projects{grid-template-columns:1fr}
+.card{padding:17px}
+}
+</style>
+</head>
+<body>
+<div class="app">
+<aside class="sidebar">
+<div class="logo"><div class="logo-icon">R</div>RECAPY</div>
+<div class="menu-label">WORKSPACE</div>
+<div class="nav-item active" onclick="notify('Dashboard')">◫ Dashboard</div>
+<div class="nav-item" onclick="goUpload()">＋ Create Video</div>
+<div class="nav-item" onclick="notify('Your projects will appear here.')">▤ My Projects</div>
+<div class="nav-item" onclick="notify('Templates are coming soon.')">▦ Templates</div>
+<div class="menu-label">ACCOUNT</div>
+<div class="nav-item" onclick="notify('Credit Wallet will be connected later.')">◈ Credits</div>
+<div class="nav-item" onclick="notify('Settings will be available soon.')">⚙ Settings</div>
+<div class="sidebar-bottom">
+<div class="nav-item" onclick="notify('RECAPY Help Center')">? Help Center</div>
+<div class="nav-item">● Free Preview</div>
+</div>
+</aside>
+<main class="main">
+<header class="topbar">
+<div class="top-title">AI Motion Studio / Dashboard</div>
+<div class="user"><div class="avatar">R</div><span>My Workspace</span></div>
+</header>
+<div class="content">
+<div class="eyebrow">AI AUDIO-TO-MOTION STUDIO</div>
+<h1>Turn Your Voice Into <span>Visual Stories.</span></h1>
+<p class="subtitle">Upload your audio. RECAPY will help transform your words into professional motion graphics, kinetic typography and visual stories.</p>
+<div class="section-heading"><h2>Create a new video</h2><p>STEP 01 / AUDIO</p></div>
+<div class="workspace">
+<section class="card" id="uploadSection">
+<div class="card-title">Upload your audio</div>
+<p class="card-desc">Start with an audio file from your device.</p>
+<label class="upload" for="fileInput">
+<div class="upload-icon">↑</div>
+<strong>Choose an audio file</strong>
+<small>MP3 · WAV · M4A</small>
+<div class="file-name" id="fileName">No file selected</div>
+</label>
+<input id="fileInput" type="file" accept="audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,.mp3,.wav,.m4a">
+<button class="primary full" id="createBtn" disabled onclick="startProject()">Continue to Studio →</button>
+</section>
+<section class="card">
+<div class="card-title">Video settings</div>
+<p class="card-desc">Choose your output format.</p>
+<div class="setting-row">
+<label>ASPECT RATIO</label>
+<div class="ratios">
+<button class="ratio selected" onclick="setRatio(this)">16:9</button>
+<button class="ratio" onclick="setRatio(this)">9:16</button>
+<button class="ratio" onclick="setRatio(this)">1:1</button>
+</div>
+</div>
+<div class="setting-row">
+<label>VIDEO STYLE</label>
+<div class="info"><strong style="color:white">Editorial Motion Graphics</strong><br>Kinetic typography · Smart graphics · Smooth transitions</div>
+</div>
+<div class="setting-row">
+<label>EXPORT QUALITY</label>
+<div class="info"><strong style="color:white">1080p Full HD</strong><br>Final export options will be available in the Studio.</div>
+</div>
+</section>
+</div>
+<div class="section-heading"><h2>Recent Projects</h2><p>YOUR WORKSPACE</p></div>
+<div class="projects">
+<div class="project"><div class="project-icon">▤</div><h3>My First Project</h3><p>No projects yet</p><span class="status">READY TO CREATE</span></div>
+<div class="project"><div class="project-icon">◈</div><h3>Motion Templates</h3><p>Professional visual styles</p><span class="status">COMING SOON</span></div>
+<div class="project"><div class="project-icon">▶</div><h3>Video Exports</h3><p>Your finished videos</p><span class="status">NO EXPORTS</span></div>
+</div>
+<div class="footer">RECAPY © 2026 · Turn Your Voice Into Visual Stories.</div>
+</div>
+</main>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+let selectedFile = null;
+let selectedRatio = "16:9";
+const fileInput = document.getElementById("fileInput");
+const fileName = document.getElementById("fileName");
+const createBtn = document.getElementById("createBtn");
+
+fileInput.addEventListener("change", function() {
+const file = this.files[0];
+if (!file) return;
+const extension = file.name.split(".").pop().toLowerCase();
+if (!["mp3","wav","m4a","aac"].includes(extension)) {
+notify("Please choose an MP3, WAV or M4A file.");
+this.value = "";
+return;
+}
+selectedFile = file;
+fileName.textContent = "✓ " + file.name;
+createBtn.disabled = false;
+});
+
+function setRatio(button) {
+document.querySelectorAll(".ratio").forEach(b => b.classList.remove("selected"));
+button.classList.add("selected");
+selectedRatio = button.textContent;
+}
+
+function startProject() {
+if (!selectedFile) {
+notify("Please upload an audio file first.");
+return;
+}
+notify("Audio selected successfully. AI Studio backend is the next development step.");
+}
+
+function notify(message) {
+const toast = document.getElementById("toast");
+toast.textContent = message;
+toast.style.display = "block";
+clearTimeout(window.toastTimer);
+window.toastTimer = setTimeout(() => {
+toast.style.display = "none";
+}, 3500);
+}
+
+function goUpload() {
+document.getElementById("uploadSection").scrollIntoView({
+behavior:"smooth",
+block:"center"
+});
+}
+</script>
+</body>
+  </html>
+  
