@@ -150,7 +150,7 @@ $('authForm').addEventListener('submit', async function (e) {
       else { show('Account created. Open the confirmation link we emailed you, then log in.', 'ok'); }
     } else {
       res = await sb.auth.resetPasswordForEmail(email, {
-        redirectTo: window.location.origin + window.location.pathname
+        redirectTo: window.location.origin + '/reset.html'
       });
       if (res.error) throw res.error;
       show('Reset link sent. Check your inbox.', 'ok');
@@ -180,5 +180,4 @@ sb.auth.onAuthStateChange(function (event, session) {
 });
 </script>
 </body>
-  </html>
-  
+</html>
