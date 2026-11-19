@@ -8,157 +8,101 @@
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
 :root {
---bg:#090909;--panel:#111;--panel2:#171717;
---border:#262626;--text:#f5f5f5;--muted:#858585;
---red:#ff3535;
+--bg:#ffffff;--panel:#ffffff;--panel2:#f7f7f8;
+--border:#e5e7eb;--text:#202123;--muted:#6b7280;
+--green:#10a37f;--green-dark:#0d8f70;--green-soft:#e9f6f1;
 }
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif;min-height:100vh}
 button{font-family:inherit;cursor:pointer}
 .app{display:flex;min-height:100vh}
-.sidebar{width:235px;background:#0d0d0d;border-right:1px solid var(--border);padding:25px 16px;display:flex;flex-direction:column;flex-shrink:0}
-.logo{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:900;letter-spacing:-1px;margin:5px 8px 45px}
-.logo-icon{background:var(--red);width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:17px}
-.menu-label{color:#686868;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:0 10px;margin:20px 0 10px}
-.nav-item{display:flex;align-items:center;gap:12px;padding:12px 13px;margin:3px 0;color:#999;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer}
-.nav-item:hover,.nav-item.active{color:white;background:#202020}
-.nav-item.active{border-left:3px solid var(--red)}
+.sidebar{width:235px;background:#fafafa;border-right:1px solid var(--border);padding:25px 16px;display:flex;flex-direction:column;flex-shrink:0}
+.logo{display:flex;align-items:center;gap:10px;font-size:23px;font-weight:900;letter-spacing:-1px;margin:5px 8px 45px;color:#202123}
+.logo-icon{background:var(--green);color:#fff;width:32px;height:32px;border-radius:9px;display:grid;place-items:center;font-size:17px}
+.menu-label{color:#8a8f98;font-size:10px;font-weight:700;letter-spacing:1.5px;padding:0 10px;margin:20px 0 10px}
+.nav-item{display:flex;align-items:center;gap:12px;padding:12px 13px;margin:3px 0;color:#59616a;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer}
+.nav-item:hover,.nav-item.active{color:#202123;background:#eceeed}
+.nav-item.active{border-left:3px solid var(--green)}
 .sidebar-bottom{margin-top:auto;border-top:1px solid var(--border);padding-top:18px}
 .main{flex:1;min-width:0}
-.topbar{height:70px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 35px}
-.top-title{font-size:13px;color:#aaa}
+.topbar{height:70px;background:rgba(255,255,255,.96);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 35px}
+.top-title{font-size:13px;color:var(--muted)}
 .user{display:flex;align-items:center;gap:10px;font-size:12px}
-.avatar{width:34px;height:34px;border-radius:50%;background:#292929;display:grid;place-items:center;font-weight:800}
+.avatar{width:34px;height:34px;border-radius:50%;background:#e8f5f0;color:#087f63;display:grid;place-items:center;font-weight:800}
 .content{max-width:1150px;padding:45px 35px;margin:auto}
-.eyebrow{color:var(--red);font-size:11px;font-weight:800;letter-spacing:2px;margin-bottom:16px}
-h1{font-size:clamp(32px,5vw,57px);line-height:1.08;letter-spacing:-2.5px;max-width:700px}
-h1 span{color:var(--red)}
+.eyebrow{color:#0d9675;font-size:11px;font-weight:800;letter-spacing:2px;margin-bottom:16px}
+h1{font-size:clamp(32px,5vw,57px);line-height:1.08;letter-spacing:-2.5px;max-width:700px;color:#202123}
+h1 span{color:#0d9675}
 .subtitle{color:var(--muted);font-size:14px;line-height:1.8;margin-top:17px;max-width:560px}
 .section-heading{display:flex;align-items:center;justify-content:space-between;margin:40px 0 17px}
-.section-heading h2{font-size:16px}
+.section-heading h2{font-size:16px;color:#202123}
 .section-heading p{font-size:11px;color:var(--muted)}
 .workspace{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:13px;padding:23px}
-.card-title{font-size:14px;font-weight:700;margin-bottom:7px}
+.card{background:#fff;border:1px solid var(--border);border-radius:12px;padding:23px;box-shadow:0 1px 3px rgba(16,24,40,.04)}
+.card-title{font-size:14px;font-weight:700;margin-bottom:7px;color:#202123}
 .card-desc{font-size:11px;color:var(--muted);line-height:1.7}
-.upload{margin-top:20px;border:1px dashed #484848;background:#141414;min-height:205px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;cursor:pointer}
-.upload:hover{border-color:var(--red)}
-.upload-icon{width:52px;height:52px;background:#252525;border-radius:15px;display:grid;place-items:center;font-size:24px;margin-bottom:14px}
-.upload strong{font-size:13px}
-.upload small{font-size:10px;color:var(--muted);margin-top:9px}
+.upload{margin-top:20px;border:1px dashed #cbd5d1;background:#fafafa;min-height:205px;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;padding:20px;cursor:pointer}
+.upload:hover{border-color:var(--green);background:#f5fbf8}
+.upload-icon{width:52px;height:52px;background:#e8f5f0;color:#087f63;border-radius:15px;display:grid;place-items:center;font-size:24px;margin-bottom:14px}
+.upload strong{font-size:13px;color:#202123}
+.upload small{font-size:10px;color:#737b83;margin-top:9px}
 #fileInput{display:none}
-.file-name{color:#ff7777;font-size:11px;margin-top:12px;word-break:break-all}
-.primary{border:0;background:var(--red);color:white;font-size:12px;font-weight:700;padding:13px 19px;border-radius:8px}
-.primary:hover{background:#e52525}
+.file-name{color:#0d9675;font-size:11px;margin-top:12px;word-break:break-all}
+.primary{border:0;background:var(--green);color:white;font-size:12px;font-weight:700;padding:13px 19px;border-radius:8px}
+.primary:hover{background:var(--green-dark)}
 .primary:disabled{opacity:.45;cursor:not-allowed}
 .full{width:100%;margin-top:18px}
 .setting-row{margin-top:22px}
-.setting-row label{display:block;color:#aaa;font-size:11px;margin-bottom:11px}
+.setting-row label{display:block;color:var(--muted);font-size:11px;margin-bottom:11px}
 .ratios{display:flex;gap:8px}
-.ratio{flex:1;background:#191919;border:1px solid #333;color:#aaa;padding:11px 5px;border-radius:7px;font-size:11px}
-.ratio.selected{border-color:var(--red);color:white;background:#291515}
-.info{margin-top:18px;padding:13px;background:#171717;border-radius:8px;color:#888;font-size:10px;line-height:1.7}
+.ratio{flex:1;background:#f7f7f8;border:1px solid var(--border);color:#59616a;padding:11px 5px;border-radius:7px;font-size:11px}
+.ratio.selected{border-color:var(--green);color:#087f63;background:var(--green-soft);font-weight:600}
+.info{margin-top:18px;padding:13px;background:#f7f7f8;border-radius:8px;color:#687078;font-size:10px;line-height:1.7}
+.info strong{color:#202123}
 .projects{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
-.project{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:18px}
-.project-icon{height:90px;background:linear-gradient(135deg,#262626,#101010);border-radius:8px;display:grid;place-items:center;font-size:28px;margin-bottom:14px}
-.project h3{font-size:12px;word-break:break-word}
+.project{background:#fff;border:1px solid var(--border);border-radius:12px;padding:18px;box-shadow:0 1px 3px rgba(16,24,40,.04)}
+.project-icon{height:90px;background:linear-gradient(135deg,#f1f5f3,#e8eeeb);color:#0d9675;border-radius:8px;display:grid;place-items:center;font-size:28px;margin-bottom:14px}
+.project h3{font-size:12px;word-break:break-word;color:#202123}
 .project p{color:var(--muted);font-size:10px;margin-top:7px}
-.status{display:inline-block;font-size:9px;color:#aaa;background:#222;border-radius:20px;padding:5px 9px;margin-top:12px}
+.status{display:inline-block;font-size:9px;color:#59616a;background:#f0f2f1;border-radius:20px;padding:5px 9px}
 .project-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
-.project-row .status{margin-top:0}
-.del{background:#1c1c1c;border:1px solid #333;color:#ff7777;font-size:10px;padding:5px 9px;border-radius:7px}
-.del:hover{border-color:var(--red)}
-.tr-btn{width:100%;margin-top:12px;background:#291515;border:1px solid var(--red);color:white;font-size:11px;font-weight:700;padding:9px;border-radius:7px}
+.del{background:#fff;border:1px solid var(--border);color:#c24141;font-size:10px;padding:5px 9px;border-radius:7px}
+.del:hover{border-color:#ef4444}
+.tr-btn{width:100%;margin-top:12px;background:var(--green-soft);border:1px solid var(--green);color:#087f63;font-size:11px;font-weight:700;padding:9px;border-radius:7px}
 .tr-btn:disabled{opacity:.5;cursor:wait}
-.an-btn{width:100%;margin-top:10px;background:#15202b;border:1px solid #3b82f6;color:white;font-size:11px;font-weight:700;padding:9px;border-radius:7px}
-.an-btn:disabled{opacity:.5;cursor:wait} .pv-btn{display:block;text-align:center;text-decoration:none;width:100%;margin-top:10px;padding:10px;border-radius:8px;background:#102a1c;border:1px solid #1f5a3a;color:#fff;font-size:12px}
-.tr-box{margin-top:12px;background:#151515;border:1px solid #2a2a2a;border-radius:8px;padding:10px}
-.tr-box summary{font-size:11px;color:#ddd;cursor:pointer}
-.tr-list{margin-top:10px;max-height:260px;overflow-y:auto;font-size:11px;line-height:1.8;color:#ccc}
+.an-btn{width:100%;margin-top:10px;background:#eff6ff;border:1px solid #bfdbfe;color:#1d4ed8;font-size:11px;font-weight:700;padding:9px;border-radius:7px}
+.an-btn:disabled{opacity:.5;cursor:wait}
+.pv-btn{display:block;text-align:center;text-decoration:none;width:100%;margin-top:10px;padding:10px;border-radius:8px;background:var(--green-soft);border:1px solid #b8e3d3;color:#087f63;font-size:12px;font-weight:700}
+.tr-box{margin-top:12px;background:#fafafa;border:1px solid var(--border);border-radius:8px;padding:10px}
+.tr-box summary{font-size:11px;color:#374151;cursor:pointer}
+.tr-list{margin-top:10px;max-height:260px;overflow-y:auto;font-size:11px;line-height:1.8;color:#4b5563}
 .tr-line{margin-bottom:8px;word-break:break-word}
-.tr-time{color:var(--red);font-size:10px;margin-right:6px}
-.sc-item{margin-bottom:10px;padding:10px;background:#101010;border:1px solid #262626;border-left:4px solid #888;border-radius:8px}
+.tr-time{color:#0d9675;font-size:10px;margin-right:6px}
+.sc-item{margin-bottom:10px;padding:10px;background:#fff;border:1px solid var(--border);border-left:4px solid #888;border-radius:8px}
 .sc-time{font-size:10px;color:var(--muted);margin-bottom:5px}
-.sc-head{font-size:13px;font-weight:700;line-height:1.6;color:#fff;word-break:break-word}
-.sc-meta{font-size:10px;color:#aaa;line-height:1.8;margin-top:6px;word-break:break-word}
-.sc-num{display:inline-block;margin-top:6px;font-size:12px;font-weight:800;color:#fff;background:#222;border-radius:6px;padding:3px 8px}
+.sc-head{font-size:13px;font-weight:700;line-height:1.6;color:#202123;word-break:break-word}
+.sc-meta{font-size:10px;color:var(--muted);line-height:1.8;margin-top:6px;word-break:break-word}
+.sc-num{display:inline-block;margin-top:6px;font-size:12px;font-weight:800;color:#202123;background:#eef2f0;border-radius:6px;padding:3px 8px}
 .empty{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;line-height:1.8}
-.footer{color:#555;font-size:10px;text-align:center;padding:35px 0 15px}
-.toast{display:none;position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#242424;border:1px solid #444;padding:14px 19px;border-radius:9px;font-size:12px;z-index:10;width:max-content;max-width:90%}
+.footer{color:#9ca3af;font-size:10px;text-align:center;padding:35px 0 15px}
+.toast{display:none;position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#202123;border:1px solid #374151;color:#fff;padding:14px 19px;border-radius:9px;font-size:12px;z-index:30;width:max-content;max-width:90%;box-shadow:0 8px 30px rgba(0,0,0,.15)}
+button:focus-visible,a:focus-visible,.upload:focus-within{outline:2px solid var(--green);outline-offset:2px}
 @media(max-width:800px){
-.sidebar{display:none}
-.topbar{height:60px;padding:0 18px}
-.content{padding:35px 17px}
+.sidebar{display:flex;position:fixed;z-index:20;left:0;right:0;bottom:0;width:100%;height:62px;padding:4px 6px;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-right:0;border-top:1px solid var(--border);flex-direction:row;align-items:center;justify-content:space-around}
+.sidebar .logo,.sidebar .menu-label{display:none}
+.sidebar .sidebar-bottom{display:contents;border:0;padding:0;margin:0}
+.sidebar .sidebar-bottom .nav-item,.sidebar>.nav-item{flex:1;justify-content:center;text-align:center;margin:0;padding:10px 2px;font-size:10px;gap:4px;white-space:nowrap}
+.sidebar>.nav-item.active{border-left:0;border-top:2px solid var(--green)}
+.content{padding:30px 17px 90px}
+.topbar{height:60px;padding:0 17px}
 .workspace{grid-template-columns:1fr}
 .projects{grid-template-columns:1fr 1fr}
-h1{letter-spacing:-1.5px}
 }
 @media(max-width:420px){
 .projects{grid-template-columns:1fr}
 .card{padding:17px}
+h1{font-size:34px;letter-spacing:-1.4px}
 }
-
-/* RECAPY LIGHT UI — free-first responsive refresh */
-:root{--bg:#fff;--panel:#fff;--panel2:#f7f7f8;--border:#e5e7eb;--text:#202123;--muted:#6b7280;--red:#10a37f}
-body{background:#fff;color:#202123}
-.sidebar{background:#fafafa;border-color:#e5e7eb}
-.logo{color:#202123}
-.logo-icon{background:#10a37f;color:#fff}
-.menu-label{color:#8a8f98}
-.nav-item{color:#59616a}
-.nav-item:hover,.nav-item.active{color:#202123;background:#eceeed}
-.nav-item.active{border-left:3px solid #10a37f}
-.topbar{background:rgba(255,255,255,.96);border-color:#e5e7eb}
-.top-title{color:#6b7280}
-.avatar{background:#e8f5f0;color:#087f63}
-.eyebrow{color:#0d9675}
-h1{color:#202123}
-h1 span{color:#0d9675}
-.subtitle,.section-heading p,.card-desc,.project p{color:#6b7280}
-.section-heading h2,.card-title,.project h3{color:#202123}
-.card,.project{background:#fff;border-color:#e5e7eb;border-radius:12px;box-shadow:0 1px 3px rgba(16,24,40,.04)}
-.upload{background:#fafafa;border-color:#cbd5d1}
-.upload:hover{border-color:#10a37f;background:#f5fbf8}
-.upload-icon{background:#e8f5f0;color:#087f63}
-.upload strong{color:#202123}
-.upload small{color:#737b83}
-.file-name{color:#0d9675}
-.primary{background:#10a37f;border-radius:8px}
-.primary:hover{background:#0d8f70}
-.ratio{background:#f7f7f8;border-color:#e5e7eb;color:#59616a}
-.ratio.selected{background:#e9f6f1;border-color:#10a37f;color:#087f63}
-.info{background:#f7f7f8;color:#687078}
-.info strong{color:#202123!important}
-.project-icon{background:linear-gradient(135deg,#f1f5f3,#e8eeeb);color:#0d9675}
-.status{background:#f0f2f1;color:#59616a}
-.del{background:#fff;border-color:#e5e7eb;color:#c24141}
-.del:hover{border-color:#ef4444}
-.tr-btn{background:#e9f6f1;border-color:#10a37f;color:#087f63}
-.an-btn{background:#eff6ff;border-color:#bfdbfe;color:#1d4ed8}
-.pv-btn{background:#e9f6f1;border-color:#b8e3d3;color:#087f63}
-.tr-box{background:#fafafa;border-color:#e5e7eb}
-.tr-box summary{color:#374151}
-.tr-list{color:#4b5563}
-.tr-time{color:#0d9675}
-.sc-item{background:#fff;border-color:#e5e7eb}
-.sc-head{color:#202123}
-.sc-meta{color:#6b7280}
-.sc-num{background:#eef2f0;color:#202123}
-.footer{color:#9ca3af}
-.toast{background:#202123;border-color:#374151;color:#fff;box-shadow:0 8px 30px rgba(0,0,0,.15)}
-button:focus-visible,a:focus-visible,.upload:focus-within{outline:2px solid #10a37f;outline-offset:2px}
-@media(max-width:800px){
-.sidebar{display:flex;position:fixed;z-index:20;left:0;right:0;bottom:0;width:100%;height:62px;padding:4px 6px;background:rgba(255,255,255,.97);backdrop-filter:blur(12px);border-right:0;border-top:1px solid #e5e7eb;flex-direction:row;align-items:center;justify-content:space-around}
-.sidebar .logo,.sidebar .menu-label{display:none}.sidebar .sidebar-bottom{display:contents;border:0;padding:0;margin:0}.sidebar .sidebar-bottom .nav-item{flex:1;justify-content:center;text-align:center;margin:0;padding:10px 2px;font-size:10px;white-space:nowrap}
-.sidebar>.nav-item{flex:1;justify-content:center;text-align:center;margin:0;padding:10px 2px;font-size:10px;gap:4px;white-space:nowrap}
-.sidebar>.nav-item.active{border-left:0;border-top:2px solid #10a37f}
-.content{padding:30px 17px 90px}
-.topbar{padding:0 17px}
-.workspace{grid-template-columns:1fr}
-.projects{grid-template-columns:1fr 1fr}
-}
-@media(max-width:420px){.projects{grid-template-columns:1fr}.card{padding:17px}h1{font-size:34px;letter-spacing:-1.4px}}
-
 </style>
 </head>
 <body>
@@ -214,11 +158,11 @@ button:focus-visible,a:focus-visible,.upload:focus-within{outline:2px solid #10a
 </div>
 <div class="setting-row">
 <label>VIDEO STYLE</label>
-<div class="info"><strong style="color:white">Editorial Motion Graphics</strong><br>Kinetic typography · Smart graphics · Smooth transitions</div>
+<div class="info"><strong>Editorial Motion Graphics</strong><br>Kinetic typography · Smart graphics · Smooth transitions</div>
 </div>
 <div class="setting-row">
 <label>EXPORT QUALITY</label>
-<div class="info"><strong style="color:white">1080p Full HD</strong><br>Final export options will be available in the Studio.</div>
+<div class="info"><strong>1080p Full HD</strong><br>Final export options will be available in the Studio.</div>
 </div>
 </section>
 </div>
@@ -231,440 +175,448 @@ button:focus-visible,a:focus-visible,.upload:focus-within{outline:2px solid #10a
 </main>
 </div>
 <div class="toast" id="toast"></div>
-<script>
-let selectedFile = null;
-let selectedRatio = "16:9";
-const MAX_BYTES = 50 * 1024 * 1024;
-const MAX_SECONDS = 120;
-const fileInput = document.getElementById("fileInput");
-const fileName = document.getElementById("fileName");
-const createBtn = document.getElementById("createBtn");
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+let selectedFile = null
+let selectedRatio = '16:9'
+const MAX_BYTES = 50 * 1024 * 1024
+const MAX_SECONDS = 120
+const fileInput = document.getElementById('fileInput')
+const fileName = document.getElementById('fileName')
+const createBtn = document.getElementById('createBtn')
 
 function getAudioDuration(file) {
-return new Promise(function(resolve) {
-const url = URL.createObjectURL(file);
-const audio = new Audio();
-let done = false;
-function finish(value) {
-if (done) return;
-done = true;
-URL.revokeObjectURL(url);
-resolve(value);
-}
-audio.preload = "metadata";
-audio.onloadedmetadata = function() {
-finish(isFinite(audio.duration) ? audio.duration : null);
-};
-audio.onerror = function() { finish(null); };
-setTimeout(function() { finish(null); }, 8000);
-audio.src = url;
-});
-}
-
-fileInput.addEventListener("change", async function() {
-const file = this.files[0];
-if (!file) return;
-const extension = file.name.split(".").pop().toLowerCase();
-if (!["mp3","wav","m4a","aac"].includes(extension)) {
-notify("Please choose an MP3, WAV or M4A file.");
-this.value = "";
-return;
-}
-if (file.size > MAX_BYTES) {
-notify("This file is too large. The maximum is 50 MB.");
-this.value = "";
-return;
+  return new Promise(function (resolve) {
+    const url = URL.createObjectURL(file)
+    const audio = new Audio()
+    let done = false
+    function finish(value) {
+      if (done) return
+      done = true
+      URL.revokeObjectURL(url)
+      resolve(value)
+    }
+    audio.preload = 'metadata'
+    audio.onloadedmetadata = function () {
+      finish(isFinite(audio.duration) ? audio.duration : null)
+    }
+    audio.onerror = function () { finish(null) }
+    setTimeout(function () { finish(null) }, 8000)
+    audio.src = url
+  })
 }
 
-selectedFile = null;
-createBtn.disabled = true;
-fileName.textContent = "Checking audio length…";
+fileInput.addEventListener('change', async function () {
+  const file = this.files[0]
+  if (!file) return
+  const extension = file.name.split('.').pop().toLowerCase()
+  if (!['mp3', 'wav', 'm4a', 'aac'].includes(extension)) {
+    notify('Please choose an MP3, WAV or M4A file.')
+    this.value = ''
+    return
+  }
+  if (file.size > MAX_BYTES) {
+    notify('This file is too large. The maximum is 50 MB.')
+    this.value = ''
+    return
+  }
 
-const secs = await getAudioDuration(file);
+  selectedFile = null
+  createBtn.disabled = true
+  fileName.textContent = 'Checking audio length…'
 
-if (secs === null) {
-notify("Could not read this audio file. Try another file.");
-fileInput.value = "";
-fileName.textContent = "No file selected";
-return;
-}
-if (secs > MAX_SECONDS + 0.5) {
-notify("This audio is too long. The maximum is 2 minutes.");
-fileInput.value = "";
-fileName.textContent = "No file selected";
-return;
-}
+  const secs = await getAudioDuration(file)
 
-selectedFile = file;
-fileName.textContent = "✓ " + file.name;
-createBtn.disabled = false;
-});
+  if (secs === null) {
+    notify('Could not read this audio file. Try another file.')
+    fileInput.value = ''
+    fileName.textContent = 'No file selected'
+    return
+  }
+  if (secs > MAX_SECONDS + 0.5) {
+    notify('This audio is too long. The maximum is 2 minutes.')
+    fileInput.value = ''
+    fileName.textContent = 'No file selected'
+    return
+  }
 
-function setRatio(button) {
-document.querySelectorAll(".ratio").forEach(b => b.classList.remove("selected"));
-button.classList.add("selected");
-selectedRatio = button.textContent;
-}
+  selectedFile = file
+  fileName.textContent = '✓ ' + file.name
+  createBtn.disabled = false
+})
 
-function notify(message) {
-const toast = document.getElementById("toast");
-toast.textContent = message;
-toast.style.display = "block";
-clearTimeout(window.toastTimer);
-window.toastTimer = setTimeout(() => {
-toast.style.display = "none";
-}, 3500);
-}
-
-function goUpload() {
-document.getElementById("uploadSection").scrollIntoView({
-behavior:"smooth",
-block:"center"
-});
+window.setRatio = function (button) {
+  document.querySelectorAll('.ratio').forEach(b => b.classList.remove('selected'))
+  button.classList.add('selected')
+  selectedRatio = button.textContent
 }
 
-function goProjects() {
-document.getElementById("projectsSection").scrollIntoView({
-behavior:"smooth",
-block:"start"
-});
+window.notify = function (message) {
+  const toast = document.getElementById('toast')
+  toast.textContent = message
+  toast.style.display = 'block'
+  clearTimeout(window.toastTimer)
+  window.toastTimer = setTimeout(() => {
+    toast.style.display = 'none'
+  }, 3500)
+}
+
+window.goUpload = function () {
+  document.getElementById('uploadSection').scrollIntoView({
+    behavior: 'smooth',
+    block: 'center'
+  })
+}
+
+window.goProjects = function () {
+  document.getElementById('projectsSection').scrollIntoView({
+    behavior: 'smooth',
+    block: 'start'
+  })
 }
 
 function formatSize(bytes) {
-if (!bytes) return "";
-if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + " KB";
-return (bytes / (1024 * 1024)).toFixed(1) + " MB";
+  if (!bytes) return ''
+  if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + ' KB'
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
 }
 
 function fmtTime(sec) {
-const s = Math.max(0, Math.round(Number(sec) || 0));
-const m = Math.floor(s / 60);
-return String(m).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+  const s = Math.max(0, Math.round(Number(sec) || 0))
+  const m = Math.floor(s / 60)
+  return String(m).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0')
 }
 
-  const SUPABASE_URL = 'https://jqsawjvtshlaqyhqluxb.supabase.co'
+const SUPABASE_URL = 'https://jqsawjvtshlaqyhqluxb.supabase.co'
 const SUPABASE_KEY = 'sb_publishable_gtDqgovcoxJSNsXUZCkPDg_7JYv9Hed'
 const supabase = createClient(SUPABASE_URL, SUPABASE_KEY)
 window.supabase = supabase
 
 document.body.style.visibility = 'hidden'
 
-const { data: { session } } = await supabase.auth.getSession()
+try {
+  const { data: { session } } = await supabase.auth.getSession()
 
-if (!session) {
-  location.replace('login.html')
-} else {
-  const user = session.user
-  const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email
-  const box = document.querySelector('.user')
-  box.querySelector('.avatar').textContent = name.charAt(0).toUpperCase()
-  box.querySelector('span').textContent = user.email
-
-  const btn = document.createElement('button')
-  btn.textContent = 'Log out'
-  btn.style.cssText = 'background:#fff;border:1px solid #e5e7eb;color:#374151;font-size:11px;padding:7px 11px;border-radius:7px;margin-left:6px'
-  btn.onclick = async () => {
-    await supabase.auth.signOut()
+  if (!session) {
     location.replace('login.html')
-  }
-  box.appendChild(btn)
+  } else {
+    const user = session.user
+    const name = user.user_metadata?.full_name || user.user_metadata?.name || user.email
+    const box = document.querySelector('.user')
+    box.querySelector('.avatar').textContent = name.charAt(0).toUpperCase()
+    box.querySelector('span').textContent = user.email
 
-  const list = document.getElementById('projectList')
-
-  function emptyCard(text) {
-    const d = document.createElement('div')
-    d.className = 'card empty'
-    d.textContent = text
-    return d
-  }
-
-  async function callFunction(fnName, projectId) {
-    const { data, error } = await supabase.functions.invoke(fnName, {
-      body: { project_id: projectId }
-    })
-    if (error) {
-      let msg = 'Request failed. Try again.'
-      try {
-        const j = await error.context.json()
-        if (j && j.error) msg = String(j.error)
-      } catch (_) {}
-      return { ok: false, msg: msg }
+    const btn = document.createElement('button')
+    btn.textContent = 'Log out'
+    btn.style.cssText = 'background:#fff;border:1px solid #e5e7eb;color:#374151;font-size:11px;padding:7px 11px;border-radius:7px;margin-left:6px'
+    btn.onclick = async () => {
+      await supabase.auth.signOut()
+      location.replace('login.html')
     }
-    if (data && data.error) return { ok: false, msg: String(data.error) }
-    return { ok: true }
-  }
+    box.appendChild(btn)
 
-  async function transcribeProject(p, button) {
-    button.disabled = true
-    button.textContent = 'Transcribing… (about 1 minute)'
-    try {
-      const r = await callFunction('rapid-action', p.id)
-      if (!r.ok) {
-        notify(r.msg)
+    const list = document.getElementById('projectList')
+
+    function emptyCard(text) {
+      const d = document.createElement('div')
+      d.className = 'card empty'
+      d.textContent = text
+      return d
+    }
+
+    async function callFunction(fnName, projectId) {
+      const { data, error } = await supabase.functions.invoke(fnName, {
+        body: { project_id: projectId }
+      })
+      if (error) {
+        let msg = 'Request failed. Try again.'
+        try {
+          const j = await error.context.json()
+          if (j && j.error) msg = String(j.error)
+        } catch (_) {}
+        return { ok: false, msg: msg }
+      }
+      if (data && data.error) return { ok: false, msg: String(data.error) }
+      return { ok: true }
+    }
+
+    async function transcribeProject(p, button) {
+      button.disabled = true
+      button.textContent = 'Transcribing… (about 1 minute)'
+      try {
+        const r = await callFunction('rapid-action', p.id)
+        if (!r.ok) {
+          notify(r.msg)
+          button.disabled = false
+          button.textContent = p.transcript ? 'Re-transcribe' : 'Transcribe'
+          return
+        }
+        notify('Transcription finished.')
+        await loadProjects()
+      } catch (e) {
+        notify('Transcription failed. Check your connection.')
         button.disabled = false
         button.textContent = p.transcript ? 'Re-transcribe' : 'Transcribe'
-        return
       }
-      notify('Transcription finished.')
-      await loadProjects()
-    } catch (e) {
-      notify('Transcription failed. Check your connection.')
-      button.disabled = false
-      button.textContent = p.transcript ? 'Re-transcribe' : 'Transcribe'
     }
-  }
 
-  async function analyzeProject(p, button) {
-    button.disabled = true
-    button.textContent = 'Analyzing scenes…'
-    try {
-      const r = await callFunction('smart-service', p.id)
-      if (!r.ok) {
-        notify(r.msg)
+    async function analyzeProject(p, button) {
+      button.disabled = true
+      button.textContent = 'Analyzing scenes…'
+      try {
+        const r = await callFunction('smart-service', p.id)
+        if (!r.ok) {
+          notify(r.msg)
+          button.disabled = false
+          button.textContent = p.scenes ? 'Re-analyze scenes' : 'Analyze scenes'
+          return
+        }
+        notify('Scene analysis finished.')
+        await loadProjects()
+      } catch (e) {
+        notify('Analysis failed. Check your connection.')
         button.disabled = false
         button.textContent = p.scenes ? 'Re-analyze scenes' : 'Analyze scenes'
+      }
+    }
+
+    function transcriptBox(segments) {
+      const det = document.createElement('details')
+      det.className = 'tr-box'
+      const sum = document.createElement('summary')
+      sum.textContent = 'View transcript (' + segments.length + ' lines)'
+      det.appendChild(sum)
+      const wrap = document.createElement('div')
+      wrap.className = 'tr-list'
+      segments.forEach(s => {
+        const line = document.createElement('div')
+        line.className = 'tr-line'
+        const t = document.createElement('span')
+        t.className = 'tr-time'
+        t.textContent = fmtTime(s.start) + '–' + fmtTime(s.end)
+        const x = document.createElement('span')
+        x.textContent = s.text
+        line.appendChild(t)
+        line.appendChild(x)
+        wrap.appendChild(line)
+      })
+      det.appendChild(wrap)
+      return det
+    }
+
+    function scenesBox(scenes) {
+      const det = document.createElement('details')
+      det.className = 'tr-box'
+      const sum = document.createElement('summary')
+      sum.textContent = 'View scenes (' + scenes.length + ')'
+      det.appendChild(sum)
+      const wrap = document.createElement('div')
+      wrap.className = 'tr-list'
+      scenes.forEach((s, i) => {
+        const item = document.createElement('div')
+        item.className = 'sc-item'
+        const col = /^#[0-9a-fA-F]{3,8}$/.test(String(s.color)) ? s.color : '#888'
+        item.style.borderLeftColor = col
+
+        const time = document.createElement('div')
+        time.className = 'sc-time'
+        time.textContent = 'Scene ' + (i + 1) + ' · ' + fmtTime(s.start) + '–' + fmtTime(s.end)
+
+        const head = document.createElement('div')
+        head.className = 'sc-head'
+        head.textContent = s.headline || ''
+
+        const meta = document.createElement('div')
+        meta.className = 'sc-meta'
+        const kw = Array.isArray(s.keywords) ? s.keywords.join(', ') : ''
+        meta.textContent = 'Motion: ' + (s.motion || '-') + ' · Mood: ' + (s.mood || '-') + (kw ? ' · ' + kw : '')
+
+        item.appendChild(time)
+        item.appendChild(head)
+        if (s.big_number) {
+          const n = document.createElement('div')
+          n.className = 'sc-num'
+          n.textContent = String(s.big_number)
+          item.appendChild(n)
+        }
+        item.appendChild(meta)
+        wrap.appendChild(item)
+      })
+      det.appendChild(wrap)
+      return det
+    }
+
+    function projectCard(p) {
+      const card = document.createElement('div')
+      card.className = 'project'
+
+      const icon = document.createElement('div')
+      icon.className = 'project-icon'
+      icon.textContent = '▤'
+
+      const h3 = document.createElement('h3')
+      h3.textContent = p.title
+
+      const parts = [p.aspect_ratio]
+      if (p.audio_size) parts.push(formatSize(p.audio_size))
+      parts.push(new Date(p.created_at).toLocaleDateString('en-GB'))
+      const info = document.createElement('p')
+      info.textContent = parts.join(' · ')
+
+      const row = document.createElement('div')
+      row.className = 'project-row'
+
+      const status = document.createElement('span')
+      status.className = 'status'
+      status.textContent = String(p.status).toUpperCase()
+
+      const del = document.createElement('button')
+      del.className = 'del'
+      del.textContent = 'Delete'
+      del.onclick = async () => {
+        if (!confirm('Delete this project and its audio file?')) return
+        if (p.audio_path) {
+          await supabase.storage.from('audio').remove([p.audio_path])
+        }
+        const { error } = await supabase.from('projects').delete().eq('id', p.id)
+        if (error) { notify('Could not delete the project.'); return }
+        notify('Project deleted.')
+        loadProjects()
+      }
+
+      row.appendChild(status)
+      row.appendChild(del)
+      card.appendChild(icon)
+      card.appendChild(h3)
+      card.appendChild(info)
+
+      const hasTranscript = Array.isArray(p.transcript) && p.transcript.length > 0
+      const hasScenes = Array.isArray(p.scenes) && p.scenes.length > 0
+
+      if (p.audio_path) {
+        const tr = document.createElement('button')
+        tr.className = 'tr-btn'
+        tr.textContent = hasTranscript ? 'Re-transcribe' : 'Transcribe'
+        tr.onclick = () => transcribeProject(p, tr)
+        card.appendChild(tr)
+      }
+
+      if (hasTranscript) {
+        card.appendChild(transcriptBox(p.transcript))
+
+        const an = document.createElement('button')
+        an.className = 'an-btn'
+        an.textContent = hasScenes ? 'Re-analyze scenes' : 'Analyze scenes'
+        an.onclick = () => analyzeProject(p, an)
+        card.appendChild(an)
+      }
+
+      if (hasScenes) {
+        card.appendChild(scenesBox(p.scenes))
+        const pv = document.createElement('a')
+        pv.className = 'pv-btn'
+        pv.href = 'motion.html?id=' + p.id
+        pv.textContent = '▶ Preview'
+        card.appendChild(pv)
+      }
+
+      card.appendChild(row)
+      return card
+    }
+
+    async function loadProjects() {
+      const { data, error } = await supabase
+        .from('projects')
+        .select('id,title,aspect_ratio,status,created_at,audio_path,audio_size,transcript,scenes')
+        .order('created_at', { ascending: false })
+        .limit(9)
+      list.textContent = ''
+      if (error) { list.appendChild(emptyCard('Could not load projects. Refresh the page.')); return }
+      if (!data.length) { list.appendChild(emptyCard('No projects yet. Upload an audio file above to create your first one.')); return }
+      data.forEach(p => list.appendChild(projectCard(p)))
+    }
+
+    function resetUploadForm() {
+      createBtn.textContent = 'Continue to Studio →'
+      selectedFile = null
+      fileInput.value = ''
+      fileName.textContent = 'No file selected'
+      createBtn.disabled = true
+    }
+
+    window.startProject = async function () {
+      if (!selectedFile) { notify('Please upload an audio file first.'); return }
+      if (selectedFile.size > MAX_BYTES) { notify('This file is too large. The maximum is 50 MB.'); return }
+
+      createBtn.disabled = true
+      createBtn.textContent = 'Saving project…'
+
+      const file = selectedFile
+      const title = file.name.replace(/\.[^.]+$/, '').slice(0, 80) || 'Untitled project'
+      const ext = file.name.split('.').pop().toLowerCase()
+
+      const { data: proj, error: e1 } = await supabase
+        .from('projects')
+        .insert({ user_id: user.id, title: title, aspect_ratio: selectedRatio, status: 'uploading' })
+        .select('id')
+        .single()
+
+      if (e1 || !proj) {
+        createBtn.textContent = 'Continue to Studio →'
+        createBtn.disabled = false
+        notify('Could not save the project. Try again.')
         return
       }
-      notify('Scene analysis finished.')
+
+      createBtn.textContent = 'Uploading audio…'
+      const path = user.id + '/' + proj.id + '.' + ext
+
+      const { error: e2 } = await supabase.storage
+        .from('audio')
+        .upload(path, file, { contentType: file.type || 'audio/mpeg', upsert: false })
+
+      if (e2) {
+        await supabase.from('projects').delete().eq('id', proj.id)
+        createBtn.textContent = 'Continue to Studio →'
+        createBtn.disabled = false
+        notify('Audio upload failed. Check your connection and try again.')
+        return
+      }
+
+      const { error: e3 } = await supabase
+        .from('projects')
+        .update({ audio_path: path, audio_size: file.size, status: 'draft', updated_at: new Date().toISOString() })
+        .eq('id', proj.id)
+
+      if (e3) {
+        await supabase.storage.from('audio').remove([path])
+        await supabase.from('projects').delete().eq('id', proj.id)
+        createBtn.textContent = 'Continue to Studio →'
+        createBtn.disabled = false
+        notify('Could not finish saving the project. Try again.')
+        return
+      }
+
+      resetUploadForm()
+      notify('Audio uploaded and project saved.')
       await loadProjects()
-    } catch (e) {
-      notify('Analysis failed. Check your connection.')
-      button.disabled = false
-      button.textContent = p.scenes ? 'Re-analyze scenes' : 'Analyze scenes'
-    }
-  }
-
-  function transcriptBox(segments) {
-    const det = document.createElement('details')
-    det.className = 'tr-box'
-    const sum = document.createElement('summary')
-    sum.textContent = 'View transcript (' + segments.length + ' lines)'
-    det.appendChild(sum)
-    const wrap = document.createElement('div')
-    wrap.className = 'tr-list'
-    segments.forEach(s => {
-      const line = document.createElement('div')
-      line.className = 'tr-line'
-      const t = document.createElement('span')
-      t.className = 'tr-time'
-      t.textContent = fmtTime(s.start) + '–' + fmtTime(s.end)
-      const x = document.createElement('span')
-      x.textContent = s.text
-      line.appendChild(t)
-      line.appendChild(x)
-      wrap.appendChild(line)
-    })
-    det.appendChild(wrap)
-    return det
-  }
-
-  function scenesBox(scenes) {
-    const det = document.createElement('details')
-    det.className = 'tr-box'
-    const sum = document.createElement('summary')
-    sum.textContent = 'View scenes (' + scenes.length + ')'
-    det.appendChild(sum)
-    const wrap = document.createElement('div')
-    wrap.className = 'tr-list'
-    scenes.forEach((s, i) => {
-      const item = document.createElement('div')
-      item.className = 'sc-item'
-      const col = /^#[0-9a-fA-F]{3,8}$/.test(String(s.color)) ? s.color : '#888'
-      item.style.borderLeftColor = col
-
-      const time = document.createElement('div')
-      time.className = 'sc-time'
-      time.textContent = 'Scene ' + (i + 1) + ' · ' + fmtTime(s.start) + '–' + fmtTime(s.end)
-
-      const head = document.createElement('div')
-      head.className = 'sc-head'
-      head.textContent = s.headline || ''
-
-      const meta = document.createElement('div')
-      meta.className = 'sc-meta'
-      const kw = Array.isArray(s.keywords) ? s.keywords.join(', ') : ''
-      meta.textContent = 'Motion: ' + (s.motion || '-') + ' · Mood: ' + (s.mood || '-') + (kw ? ' · ' + kw : '')
-
-      item.appendChild(time)
-      item.appendChild(head)
-      if (s.big_number) {
-        const n = document.createElement('div')
-        n.className = 'sc-num'
-        n.textContent = String(s.big_number)
-        item.appendChild(n)
-      }
-      item.appendChild(meta)
-      wrap.appendChild(item)
-    })
-    det.appendChild(wrap)
-    return det
-  }
-
-  function projectCard(p) {
-    const card = document.createElement('div')
-    card.className = 'project'
-
-    const icon = document.createElement('div')
-    icon.className = 'project-icon'
-    icon.textContent = '▤'
-
-    const h3 = document.createElement('h3')
-    h3.textContent = p.title
-
-    const parts = [p.aspect_ratio]
-    if (p.audio_size) parts.push(formatSize(p.audio_size))
-    parts.push(new Date(p.created_at).toLocaleDateString('en-GB'))
-    const info = document.createElement('p')
-    info.textContent = parts.join(' · ')
-
-    const row = document.createElement('div')
-    row.className = 'project-row'
-
-    const status = document.createElement('span')
-    status.className = 'status'
-    status.textContent = String(p.status).toUpperCase()
-
-    const del = document.createElement('button')
-    del.className = 'del'
-    del.textContent = 'Delete'
-    del.onclick = async () => {
-      if (!confirm('Delete this project and its audio file?')) return
-      if (p.audio_path) {
-        await supabase.storage.from('audio').remove([p.audio_path])
-      }
-      const { error } = await supabase.from('projects').delete().eq('id', p.id)
-      if (error) { notify('Could not delete the project.'); return }
-      notify('Project deleted.')
-      loadProjects()
+      goProjects()
     }
 
-    row.appendChild(status)
-    row.appendChild(del)
-    card.appendChild(icon)
-    card.appendChild(h3)
-    card.appendChild(info)
-
-    const hasTranscript = Array.isArray(p.transcript) && p.transcript.length > 0
-    const hasScenes = Array.isArray(p.scenes) && p.scenes.length > 0
-
-    if (p.audio_path) {
-      const tr = document.createElement('button')
-      tr.className = 'tr-btn'
-      tr.textContent = hasTranscript ? 'Re-transcribe' : 'Transcribe'
-      tr.onclick = () => transcribeProject(p,tr)
-      card.appendChild(tr)
+    window.showCredits = async function () {
+      const { data, error } = await supabase.from('credit_wallets').select('balance').maybeSingle()
+      if (error || !data) { notify('Could not load your credit balance.'); return }
+      notify('Credit balance: ' + data.balance)
     }
 
-    if (hasTranscript) {
-      card.appendChild(transcriptBox(p.transcript))
-
-      const an = document.createElement('button')
-      an.className = 'an-btn'
-      an.textContent = hasScenes ? 'Re-analyze scenes' : 'Analyze scenes'
-      an.onclick = () => analyzeProject(p, an)
-      card.appendChild(an)
-    }
-
-    if (hasScenes) {
-      card.appendChild(scenesBox(p.scenes))
-      const pv = document.createElement('a')
-      pv.className = 'pv-btn'
-      pv.href = 'motion.html?id=' + p.id
-      pv.textContent = '▶ Preview'
-      card.appendChild(pv)
-    }
-
-    card.appendChild(row)
-    return card
-  }
-
-  async function loadProjects() {
-    const { data, error } = await supabase
-      .from('projects')
-      .select('id,title,aspect_ratio,status,created_at,audio_path,audio_size,transcript,scenes')
-      .order('created_at', { ascending: false })
-      .limit(9)
-    list.textContent = ''
-    if (error) { list.appendChild(emptyCard('Could not load projects. Refresh the page.')); return }
-    if (!data.length) { list.appendChild(emptyCard('No projects yet. Upload an audio file above to create your first one.')); return }
-    data.forEach(p => list.appendChild(projectCard(p)))
-  }
-
-  function resetUploadForm() {
-    createBtn.textContent = 'Continue to Studio →'
-    selectedFile = null
-    fileInput.value = ''
-    fileName.textContent = 'No file selected'
-    createBtn.disabled = true
-  }
-
-  window.startProject = async function () {
-    if (!selectedFile) { notify('Please upload an audio file first.'); return }
-    if (selectedFile.size > MAX_BYTES) { notify('This file is too large. The maximum is 50 MB.'); return }
-
-    createBtn.disabled = true
-    createBtn.textContent = 'Saving project…'
-
-    const file = selectedFile
-    const title = file.name.replace(/\.[^.]+$/, '').slice(0, 80) || 'Untitled project'
-    const ext = file.name.split('.').pop().toLowerCase()
-
-    const { data: proj, error: e1 } = await supabase
-      .from('projects')
-      .insert({ user_id: user.id, title: title, aspect_ratio: selectedRatio, status: 'uploading' })
-      .select('id')
-      .single()
-
-    if (e1 || !proj) {
-      createBtn.textContent = 'Continue to Studio →'
-      createBtn.disabled = false
-      notify('Could not save the project. Try again.')
-      return
-    }
-
-    createBtn.textContent = 'Uploading audio…'
-    const path = user.id + '/' + proj.id + '.' + ext
-
-    const { error: e2 } = await supabase.storage
-      .from('audio')
-      .upload(path, file, { contentType: file.type || 'audio/mpeg', upsert: false })
-
-    if (e2) {
-      await supabase.from('projects').delete().eq('id', proj.id)
-      createBtn.textContent = 'Continue to Studio →'
-      createBtn.disabled = false
-      notify('Audio upload failed. Check your connection and try again.')
-      return
-    }
-
-    const { error: e3 } = await supabase
-      .from('projects')
-      .update({ audio_path: path, audio_size: file.size, status: 'draft', updated_at: new Date().toISOString() })
-      .eq('id', proj.id)
-
-    if (e3) {
-      await supabase.storage.from('audio').remove([path])
-      await supabase.from('projects').delete().eq('id', proj.id)
-      createBtn.textContent = 'Continue to Studio →'
-      createBtn.disabled = false
-      notify('Could not finish saving the project. Try again.')
-      return
-    }
-
-    resetUploadForm()
-    notify('Audio uploaded and project saved.')
     await loadProjects()
-    goProjects()
+    document.body.style.visibility = 'visible'
   }
-
-  window.showCredits = async function () {
-    const { data, error } = await supabase.from('credit_wallets').select('balance').maybeSingle()
-    if (error || !data) { notify('Could not load your credit balance.'); return }
-    notify('Credit balance: ' + data.balance)
-  }
-
-  await loadProjects()
+} catch (err) {
+  console.error(err)
   document.body.style.visibility = 'visible'
+  notify('Connection error. Please refresh the page.')
 }
 
 supabase.auth.onAuthStateChange((event) => {
