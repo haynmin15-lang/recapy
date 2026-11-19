@@ -71,7 +71,7 @@ h1 span{color:var(--red)}
 .tr-btn{width:100%;margin-top:12px;background:#291515;border:1px solid var(--red);color:white;font-size:11px;font-weight:700;padding:9px;border-radius:7px}
 .tr-btn:disabled{opacity:.5;cursor:wait}
 .an-btn{width:100%;margin-top:10px;background:#15202b;border:1px solid #3b82f6;color:white;font-size:11px;font-weight:700;padding:9px;border-radius:7px}
-.an-btn:disabled{opacity:.5;cursor:wait}
+.an-btn:disabled{opacity:.5;cursor:wait} .pv-btn{display:block;text-align:center;text-decoration:none;width:100%;margin-top:10px;padding:10px;border-radius:8px;background:#102a1c;border:1px solid #1f5a3a;color:#fff;font-size:12px}
 .tr-box{margin-top:12px;background:#151515;border:1px solid #2a2a2a;border-radius:8px;padding:10px}
 .tr-box summary{font-size:11px;color:#ddd;cursor:pointer}
 .tr-list{margin-top:10px;max-height:260px;overflow-y:auto;font-size:11px;line-height:1.8;color:#ccc}
@@ -508,6 +508,11 @@ if (!session) {
 
     if (hasScenes) {
       card.appendChild(scenesBox(p.scenes))
+      const pv = document.createElement('a')
+    pv.className = 'pv-btn'
+    pv.href = 'motion.html?id=' + p.id
+    pv.textContent = '▶ Preview'
+    card.appendChild(pv)
     }
 
     card.appendChild(row)
