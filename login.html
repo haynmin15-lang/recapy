@@ -3,36 +3,48 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#090909">
+<meta name="theme-color" content="#ffffff">
 <title>RECAPY — Sign in</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-:root{--bg:#090909;--panel:#111;--panel2:#171717;--border:#262626;--text:#f5f5f5;--muted:#858585;--red:#ff3535}
+:root{
+  --bg:#f7f8fa;
+  --panel:#ffffff;
+  --panel2:#f0f2f5;
+  --border:#e2e6ec;
+  --text:#111827;
+  --muted:#6b7280;
+  --accent:#10a37f;
+  --accent-hover:#0d8c6d;
+  --accent-soft:#e6f6f1;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif;min-height:100vh;display:grid;place-items:center;padding:20px}
 .wrap{width:100%;max-width:400px}
-.logo{display:flex;align-items:center;gap:10px;font-size:26px;font-weight:900;letter-spacing:-1px;justify-content:center;margin-bottom:8px}
-.logo-icon{background:var(--red);width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:19px}
-.tagline{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px}
-.tabs{display:flex;background:#0d0d0d;border:1px solid var(--border);border-radius:9px;padding:3px;margin-bottom:22px}
-.tab{flex:1;border:0;background:transparent;color:#999;font:600 13px Inter,Arial,sans-serif;padding:10px;border-radius:7px;cursor:pointer}
-.tab.active{background:var(--red);color:#fff}
-label{display:block;color:#aaa;font-size:12px;margin:14px 0 7px}
-input{width:100%;background:#141414;border:1px solid #333;color:var(--text);font:14px Inter,Arial,sans-serif;padding:13px;border-radius:8px;outline:none}
-input:focus{border-color:var(--red)}
-.btn{width:100%;border:0;background:var(--red);color:#fff;font:700 14px Inter,Arial,sans-serif;padding:14px;border-radius:8px;margin-top:20px;cursor:pointer}
-.btn:hover{background:#e52525}
+.logo{display:flex;align-items:center;gap:10px;font-size:26px;font-weight:900;letter-spacing:-0.8px;justify-content:center;margin-bottom:8px;color:var(--text)}
+.logo-icon{background:var(--accent);color:#fff;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px;box-shadow:0 4px 12px rgba(16,163,127,.22)}
+.tagline{text-align:center;color:var(--muted);font-size:13px;margin-bottom:24px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(17,24,39,.05)}
+.tabs{display:flex;background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:3px;margin-bottom:20px}
+.tab{flex:1;border:0;background:transparent;color:var(--muted);font:600 13px Inter,Arial,sans-serif;padding:10px;border-radius:8px;cursor:pointer;transition:.15s}
+.tab.active{background:var(--panel);color:var(--text);box-shadow:0 1px 4px rgba(17,24,39,.08)}
+label{display:block;color:#374151;font-size:12px;font-weight:600;margin:14px 0 6px}
+input{width:100%;background:#fff;border:1px solid #d1d5db;color:var(--text);font:14px Inter,Arial,sans-serif;padding:12px 13px;border-radius:9px;outline:none;transition:.15s}
+input::placeholder{color:#9ca3af}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(16,163,127,.14)}
+.btn{width:100%;border:0;background:var(--accent);color:#fff;font:700 14px Inter,Arial,sans-serif;padding:13px 14px;border-radius:9px;margin-top:20px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--accent-hover)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.google{background:#fff;color:#111;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:0}
-.google:hover{background:#e8e8e8}
-.or{display:flex;align-items:center;gap:12px;color:#666;font-size:12px;margin:18px 0}
+.google{background:#fff;color:#111827;border:1px solid #d1d5db;display:flex;align-items:center;justify-content:center;gap:10px;margin-top:0}
+.google:hover{background:#f9fafb;border-color:#c4cad4}
+.or{display:flex;align-items:center;gap:12px;color:#9ca3af;font-size:12px;margin:18px 0}
 .or::before,.or::after{content:"";flex:1;height:1px;background:var(--border)}
-.link{background:none;border:0;color:#ff7777;font:12px Inter,Arial,sans-serif;cursor:pointer;margin-top:14px;display:block;text-align:center;width:100%}
-.msg{display:none;margin-top:16px;padding:12px;border-radius:8px;font-size:12px;line-height:1.6}
-.msg.err{display:block;background:#2a1212;border:1px solid #5a2020;color:#ff9a9a}
-.msg.ok{display:block;background:#10241a;border:1px solid #1f5a3a;color:#8fe0b4}
+.link{background:none;border:0;color:var(--accent);font:600 12px Inter,Arial,sans-serif;cursor:pointer;margin-top:14px;display:block;text-align:center;width:100%}
+.link:hover{text-decoration:underline}
+.msg{display:none;margin-top:16px;padding:12px;border-radius:9px;font-size:12px;line-height:1.6}
+.msg.err{display:block;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
+.msg.ok{display:block;background:var(--accent-soft);border:1px solid #a7e3d3;color:#065f46}
 .hidden{display:none}
 </style>
 </head>
@@ -142,7 +154,7 @@ $('authForm').addEventListener('submit', async function (e) {
         password: password,
         options: {
           data: { full_name: $('name').value.trim() },
-          emailRedirectTo: window.location.origin + window.location.pathname
+          emailRedirectTo: window.location.origin + '/' + HOME_PAGE
         }
       });
       if (res.error) throw res.error;
@@ -166,12 +178,11 @@ $('googleBtn').onclick = async function () {
   clearMsg();
   var res = await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.origin + window.location.pathname }
+    options: { redirectTo: window.location.origin + '/' + HOME_PAGE }
   });
   if (res.error) show(friendly(res.error), 'err');
 };
 
-// Already signed in, or returning from Google / email link
 sb.auth.getSession().then(function (r) {
   if (r.data && r.data.session) goHome();
 });
