@@ -61,9 +61,14 @@ h1 span{color:var(--red)}
 .projects{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .project{background:var(--panel);border:1px solid var(--border);border-radius:11px;padding:18px}
 .project-icon{height:90px;background:linear-gradient(135deg,#262626,#101010);border-radius:8px;display:grid;place-items:center;font-size:28px;margin-bottom:14px}
-.project h3{font-size:12px}
+.project h3{font-size:12px;word-break:break-word}
 .project p{color:var(--muted);font-size:10px;margin-top:7px}
 .status{display:inline-block;font-size:9px;color:#aaa;background:#222;border-radius:20px;padding:5px 9px;margin-top:12px}
+.project-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:12px}
+.project-row .status{margin-top:0}
+.del{background:#1c1c1c;border:1px solid #333;color:#ff7777;font-size:10px;padding:5px 9px;border-radius:7px}
+.del:hover{border-color:var(--red)}
+.empty{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;line-height:1.8}
 .footer{color:#555;font-size:10px;text-align:center;padding:35px 0 15px}
 .toast{display:none;position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#242424;border:1px solid #444;padding:14px 19px;border-radius:9px;font-size:12px;z-index:10;width:max-content;max-width:90%}
 @media(max-width:800px){
@@ -87,10 +92,10 @@ h1{letter-spacing:-1.5px}
 <div class="menu-label">WORKSPACE</div>
 <div class="nav-item active" onclick="notify('Dashboard')">◫ Dashboard</div>
 <div class="nav-item" onclick="goUpload()">＋ Create Video</div>
-<div class="nav-item" onclick="notify('Your projects will appear here.')">▤ My Projects</div>
+<div class="nav-item" onclick="goProjects()">▤ My Projects</div>
 <div class="nav-item" onclick="notify('Templates are coming soon.')">▦ Templates</div>
 <div class="menu-label">ACCOUNT</div>
-<div class="nav-item" onclick="notify('Credit Wallet will be connected later.')">◈ Credits</div>
+<div class="nav-item" onclick="showCredits()">◈ Credits</div>
 <div class="nav-item" onclick="notify('Settings will be available soon.')">⚙ Settings</div>
 <div class="sidebar-bottom">
 <div class="nav-item" onclick="notify('RECAPY Help Center')">? Help Center</div>
@@ -141,11 +146,9 @@ h1{letter-spacing:-1.5px}
 </div>
 </section>
 </div>
-<div class="section-heading"><h2>Recent Projects</h2><p>YOUR WORKSPACE</p></div>
-<div class="projects">
-<div class="project"><div class="project-icon">▤</div><h3>My First Project</h3><p>No projects yet</p><span class="status">READY TO CREATE</span></div>
-<div class="project"><div class="project-icon">◈</div><h3>Motion Templates</h3><p>Professional visual styles</p><span class="status">COMING SOON</span></div>
-<div class="project"><div class="project-icon">▶</div><h3>Video Exports</h3><p>Your finished videos</p><span class="status">NO EXPORTS</span></div>
+<div class="section-heading" id="projectsSection"><h2>Recent Projects</h2><p>YOUR WORKSPACE</p></div>
+<div class="projects" id="projectList">
+<div class="card empty">Loading projects…</div>
 </div>
 <div class="footer">RECAPY © 2026 · Turn Your Voice Into Visual Stories.</div>
 </div>
@@ -179,14 +182,6 @@ button.classList.add("selected");
 selectedRatio = button.textContent;
 }
 
-function startProject() {
-if (!selectedFile) {
-notify("Please upload an audio file first.");
-return;
-}
-notify("Audio selected successfully. AI Studio backend is the next development step.");
-}
-
 function notify(message) {
 const toast = document.getElementById("toast");
 toast.textContent = message;
@@ -203,8 +198,15 @@ behavior:"smooth",
 block:"center"
 });
 }
+
+function goProjects() {
+document.getElementById("projectsSection").scrollIntoView({
+behavior:"smooth",
+block:"start"
+});
+}
 </script>
-  <script type="module">
+<script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
 
 const SUPABASE_URL = 'https://jqsawjvtshlaqyhqluxb.supabase.co'
@@ -233,13 +235,98 @@ if (!session) {
     location.replace('login.html')
   }
   box.appendChild(btn)
+
+  const list = document.getElementById('projectList')
+
+  function emptyCard(text) {
+    const d = document.createElement('div')
+    d.className = 'card empty'
+    d.textContent = text
+    return d
+  }
+
+  function projectCard(p) {
+    const card = document.createElement('div')
+    card.className = 'project'
+
+    const icon = document.createElement('div')
+    icon.className = 'project-icon'
+    icon.textContent = '▤'
+
+    const h3 = document.createElement('h3')
+    h3.textContent = p.title
+
+    const info = document.createElement('p')
+    info.textContent = p.aspect_ratio + ' · ' + new Date(p.created_at).toLocaleDateString()
+
+    const row = document.createElement('div')
+    row.className = 'project-row'
+
+    const status = document.createElement('span')
+    status.className = 'status'
+    status.textContent = String(p.status).toUpperCase()
+
+    const del = document.createElement('button')
+    del.className = 'del'
+    del.textContent = 'Delete'
+    del.onclick = async () => {
+      if (!confirm('Delete this project?')) return
+      const { error } = await supabase.from('projects').delete().eq('id', p.id)
+      if (error) { notify('Could not delete the project.'); return }
+      notify('Project deleted.')
+      loadProjects()
+    }
+
+    row.appendChild(status)
+    row.appendChild(del)
+    card.appendChild(icon)
+    card.appendChild(h3)
+    card.appendChild(info)
+    card.appendChild(row)
+    return card
+  }
+
+  async function loadProjects() {
+    const { data, error } = await supabase
+      .from('projects')
+      .select('id,title,aspect_ratio,status,created_at')
+      .order('created_at', { ascending: false })
+      .limit(9)
+    list.textContent = ''
+    if (error) { list.appendChild(emptyCard('Could not load projects. Refresh the page.')); return }
+    if (!data.length) { list.appendChild(emptyCard('No projects yet. Upload an audio file above to create your first one.')); return }
+    data.forEach(p => list.appendChild(projectCard(p)))
+  }
+
+  window.startProject = async function () {
+    if (!selectedFile) { notify('Please upload an audio file first.'); return }
+    createBtn.disabled = true
+    const title = selectedFile.name.replace(/\.[^.]+$/, '').slice(0, 80) || 'Untitled project'
+    const { error } = await supabase.from('projects').insert({
+      user_id: user.id,
+      title: title,
+      aspect_ratio: selectedRatio
+    })
+    createBtn.disabled = false
+    if (error) { notify('Could not save the project. Try again.'); return }
+    notify('Project saved. Audio upload and AI Studio come next.')
+    await loadProjects()
+    goProjects()
+  }
+
+  window.showCredits = async function () {
+    const { data, error } = await supabase.from('credit_wallets').select('balance').maybeSingle()
+    if (error || !data) { notify('Could not load your credit balance.'); return }
+    notify('Credit balance: ' + data.balance)
+  }
+
+  await loadProjects()
   document.body.style.visibility = 'visible'
 }
 
 supabase.auth.onAuthStateChange((event) => {
   if (event === 'SIGNED_OUT') location.replace('login.html')
 })
-  </script>
+</script>
 </body>
   </html>
-  
