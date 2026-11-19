@@ -3,31 +3,43 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<meta name="theme-color" content="#090909">
-<title>RECAPY — Set new password</title>
+<meta name="theme-color" content="#ffffff">
+<title>RECAPY — Reset Password</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap');
-:root{--bg:#090909;--panel:#111;--panel2:#171717;--border:#262626;--text:#f5f5f5;--muted:#858585;--red:#ff3535}
+:root{
+  --bg:#f7f8fa;
+  --panel:#ffffff;
+  --panel2:#f0f2f5;
+  --border:#e2e6ec;
+  --text:#111827;
+  --muted:#6b7280;
+  --accent:#10a37f;
+  --accent-hover:#0d8c6d;
+  --accent-soft:#e6f6f1;
+}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--bg);color:var(--text);font-family:Inter,Arial,sans-serif;min-height:100vh;display:grid;place-items:center;padding:20px}
 .wrap{width:100%;max-width:400px}
-.logo{display:flex;align-items:center;gap:10px;font-size:26px;font-weight:900;letter-spacing:-1px;justify-content:center;margin-bottom:8px}
-.logo-icon{background:var(--red);width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:19px}
-.tagline{text-align:center;color:var(--muted);font-size:13px;margin-bottom:28px}
-.card{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px}
-h1{font-size:18px;font-weight:700;margin-bottom:6px}
-.sub{color:var(--muted);font-size:13px;line-height:1.6}
-label{display:block;color:#aaa;font-size:12px;margin:14px 0 7px}
-input{width:100%;background:#141414;border:1px solid #333;color:var(--text);font:14px Inter,Arial,sans-serif;padding:13px;border-radius:8px;outline:none}
-input:focus{border-color:var(--red)}
-.btn{width:100%;border:0;background:var(--red);color:#fff;font:700 14px Inter,Arial,sans-serif;padding:14px;border-radius:8px;margin-top:20px;cursor:pointer;display:block;text-align:center;text-decoration:none}
-.btn:hover{background:#e52525}
+.logo{display:flex;align-items:center;gap:10px;font-size:26px;font-weight:900;letter-spacing:-0.8px;justify-content:center;margin-bottom:8px;color:var(--text)}
+.logo-icon{background:var(--accent);color:#fff;width:36px;height:36px;border-radius:10px;display:grid;place-items:center;font-size:18px;box-shadow:0 4px 12px rgba(16,163,127,.22)}
+.tagline{text-align:center;color:var(--muted);font-size:13px;margin-bottom:24px}
+.card{background:var(--panel);border:1px solid var(--border);border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(17,24,39,.05)}
+h1{font-size:18px;font-weight:800;margin-bottom:6px;color:var(--text)}
+p.sub{color:var(--muted);font-size:13px;line-height:1.5;margin-bottom:14px}
+label{display:block;color:#374151;font-size:12px;font-weight:600;margin:14px 0 6px}
+input{width:100%;background:#fff;border:1px solid #d1d5db;color:var(--text);font:14px Inter,Arial,sans-serif;padding:12px 13px;border-radius:9px;outline:none;transition:.15s}
+input::placeholder{color:#9ca3af}
+input:focus{border-color:var(--accent);box-shadow:0 0 0 3px rgba(16,163,127,.14)}
+.btn{width:100%;border:0;background:var(--accent);color:#fff;font:700 14px Inter,Arial,sans-serif;padding:13px 14px;border-radius:9px;margin-top:20px;cursor:pointer;transition:.15s}
+.btn:hover{background:var(--accent-hover)}
 .btn:disabled{opacity:.5;cursor:not-allowed}
-.msg{display:none;margin-top:16px;padding:12px;border-radius:8px;font-size:12px;line-height:1.6}
-.msg.err{display:block;background:#2a1212;border:1px solid #5a2020;color:#ff9a9a}
-.msg.ok{display:block;background:#10241a;border:1px solid #1f5a3a;color:#8fe0b4}
-.hidden{display:none}
+.link{display:inline-block;margin-top:16px;width:100%;text-align:center;color:var(--accent);font-size:12px;font-weight:600;text-decoration:none}
+.link:hover{text-decoration:underline}
+.msg{display:none;margin-top:16px;padding:12px;border-radius:9px;font-size:12px;line-height:1.6}
+.msg.err{display:block;background:#fef2f2;border:1px solid #fecaca;color:#b91c1c}
+.msg.ok{display:block;background:var(--accent-soft);border:1px solid #a7e3d3;color:#065f46}
 </style>
 </head>
 <body>
@@ -37,25 +49,19 @@ input:focus{border-color:var(--red)}
 
   <div class="card">
     <h1>Set a new password</h1>
+    <p class="sub">Enter your new password below to finish resetting your account.</p>
 
-    <div id="checking">
-      <p class="sub" style="margin-top:8px">Checking your reset link…</p>
-    </div>
+    <form id="resetForm" novalidate>
+      <label for="password">New password</label>
+      <input id="password" type="password" autocomplete="new-password" placeholder="At least 6 characters">
 
-    <form id="resetForm" class="hidden" novalidate>
-      <p class="sub">Choose a new password for your account.</p>
-      <label for="pw1">New password</label>
-      <input id="pw1" type="password" autocomplete="new-password" placeholder="At least 6 characters">
-      <label for="pw2">Confirm new password</label>
-      <input id="pw2" type="password" autocomplete="new-password" placeholder="Type it again">
-      <button class="btn" id="saveBtn" type="submit">Save new password</button>
+      <label for="confirm">Confirm new password</label>
+      <input id="confirm" type="password" autocomplete="new-password" placeholder="Re-enter new password">
+
+      <button class="btn" id="submitBtn" type="submit">Update password</button>
     </form>
 
-    <div id="invalid" class="hidden">
-      <div class="msg err" style="display:block;margin-top:12px">This reset link is invalid or has expired. Request a new one from the log in page. Open the new link in the same browser you used to request it.</div>
-      <a class="btn" href="login.html">Back to log in</a>
-    </div>
-
+    <a class="link" href="login.html">Back to sign in</a>
     <div class="msg" id="msg"></div>
   </div>
 </div>
@@ -69,62 +75,32 @@ var sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY, {
 });
 
 var $ = function (id) { return document.getElementById(id); };
-var ready = false;
 
 function show(text, type) {
   var m = $('msg');
   m.className = 'msg ' + type;
   m.textContent = text;
 }
-function clearMsg() { $('msg').className = 'msg'; }
-
-function showForm() {
-  ready = true;
-  $('checking').classList.add('hidden');
-  $('invalid').classList.add('hidden');
-  $('resetForm').classList.remove('hidden');
-}
-function showInvalid() {
-  if (ready) return;
-  $('checking').classList.add('hidden');
-  $('resetForm').classList.add('hidden');
-  $('invalid').classList.remove('hidden');
-}
-
-// The reset link signs the user in temporarily and fires PASSWORD_RECOVERY.
-// Do NOT redirect to the dashboard here.
-sb.auth.onAuthStateChange(function (event) {
-  if (event === 'PASSWORD_RECOVERY') showForm();
-});
-
-// Error returned in the link (expired / already used)
-if (/error=|error_code=/.test(window.location.search + window.location.hash)) {
-  showInvalid();
-} else {
-  // If no recovery event arrives, the link is not usable
-  setTimeout(showInvalid, 5000);
-}
 
 $('resetForm').addEventListener('submit', async function (e) {
   e.preventDefault();
-  clearMsg();
-  var p1 = $('pw1').value;
-  var p2 = $('pw2').value;
-  if (p1.length < 6) { show('Password needs at least 6 characters.', 'err'); return; }
-  if (p1 !== p2) { show('The two passwords do not match.', 'err'); return; }
+  $('msg').className = 'msg';
+  var pw = $('password').value;
+  var cf = $('confirm').value;
 
-  var btn = $('saveBtn');
+  if (pw.length < 6) { show('Password needs at least 6 characters.', 'err'); return; }
+  if (pw !== cf) { show('Passwords do not match.', 'err'); return; }
+
+  var btn = $('submitBtn');
   btn.disabled = true;
   try {
-    var res = await sb.auth.updateUser({ password: p1 });
+    var res = await sb.auth.updateUser({ password: pw });
     if (res.error) throw res.error;
-    show('Password updated. Taking you to log in…', 'ok');
-    await sb.auth.signOut();
-    setTimeout(function () { window.location.replace('login.html'); }, 1800);
+    show('Password updated! Redirecting to sign in...', 'ok');
+    setTimeout(function () { window.location.replace('login.html'); }, 1200);
   } catch (err) {
-    var t = (err && err.message) || 'Something went wrong. Try again.';
-    if (/different from the old/i.test(t)) t = 'New password must be different from your old password.';
-    show(t, 'err');
+    show((err && err.message) || 'Could not update password. Open a fresh reset link.', 'err');
+  } finally {
     btn.disabled = false;
   }
 });
