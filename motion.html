@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0b0e13">
+<title>RECAPY — Motion Preview</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Myanmar:wght@500;600;700;800&family=Inter:wght@500;600;700;800;900&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#0b0e13;
+  color:#f3f4f6;
+  font-family:'Noto Sans Myanmar',Inter,Arial,sans-serif;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  padding:20px 14px 40px;
+}
+.top-bar{
+  width:100%;
+  max-width:960px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:14px;
+  flex-wrap:wrap;
+}
+.back-link{
+  color:#d1d5db;
+  text-decoration:none;
+  font-size:13px;
+  font-weight:600;
+  padding:8px 12px;
+  border-radius:8px;
+  background:#151a22;
+  border:1px solid #262e3d;
+}
+.back-link:hover{border-color:#10a37f;color:#fff}
+.project-title{
+  font-size:14px;
+  font-weight:700;
+  color:#f9fafb;
+}
+.stage-wrap{
+  width:100%;
+  max-width:960px;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  background:#11161f;
+  border:1px solid #232b38;
+  border-radius:14px;
+  padding:14px;
+}
+canvas{
+  width:100%;
+  max-width:900px;
+  height:auto;
+  aspect-ratio:16/9;
+  border-radius:10px;
+  display:block;
+  background:#0f172a;
+}
+.controls{
+  width:100%;
+  max-width:960px;
+  margin-top:14px;
+  background:#151a22;
+  border:1px solid #262e3d;
+  border-radius:12px;
+  padding:14px 16px;
+  display:flex;
+  flex-direction:column;
+  gap:12px;
+}
+.ctrl-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+button.ctrl-btn{
+  border:0;
+  border-radius:8px;
+  padding:10px 16px;
+  font-family:inherit;
+  font-size:13px;
+  font-weight:700;
+  cursor:pointer;
+}
+#playBtn{background:#10a37f;color:#fff}
+#playBtn:hover{background:#0d8f70}
+#restartBtn{background:#242c3a;color:#e5e7eb;border:1px solid #343f52}
+#restartBtn:hover{background:#2d3748}
+#seekBar{
+  flex:1;
+  min-width:140px;
+  accent-color:#10a37f;
+  cursor:pointer;
+}
+.time-label{
+  font-size:12px;
+  color:#cbd5e1;
+  font-variant-numeric:tabular-nums;
+}
+.status-text{
+  font-size:12px;
+  color:#9ca3af;
+}
+.design-chips{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  font-size:11px;
+  color:#cbd5e1;
+}
+.chip{
+  background:#1e2633;
+  border:1px solid #2f3a4d;
+  border-radius:999px;
+  padding:4px 10px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+}
+.dot{
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  display:inline-block;
+}
+</style>
+</head>
+<body>
+<div class="top-bar">
+  <a class="back-link" href="index.html">← Back to Dashboard</a>
+  <div class="project-title" id="projTitle">Loading Preview…</div>
+</div>
+
+<div class="stage-wrap">
+  <canvas id="stage" width="1280" height="720"></canvas>
+</div>
+
+<div class="controls">
+  <div class="ctrl-row">
+    <button class="ctrl-btn" id="playBtn">▶ Play</button>
+    <button class="ctrl-btn" id="restartBtn">↻ Restart</button>
+    <input type="range" id="seekBar" min="0" max="100" step="0.1" value="0">
+    <span class="time-label" id="timeLabel">0:00 / 0:00</span>
+  </div>
+  <div class="design-chips" id="designChips"></div>
+  <div class="status-text" id="statusText">Loading project data…</div>
+</div>
+
+<script type="module">
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+const SUPABASE_URL = 'https://jqsawjvtshlaqyhqluxb.supabase.co'
+const SUPABASE_KEY = 'sb_publishable_gtDqgovcoxJSNsXUZCkPDg_7JYv9Hed'
+
+const supabase = createClient(SUPABASE_URL, SUPABASE_KEY, {
+  auth: {
+    flowType: 'pkce',
+    detectSessionInUrl: true,
+    persistSession: true
+  }
+})
+
+const params = new URLSearchParams(window.location.search)
+const projectId = params.get('id') || ''
+const urlTone = params.get('tone') || ''
+const urlColor = params.get('color') || ''
+const urlShape = params.get('shape') || ''
+
+const canvas = document.getElementById('stage')
+const ctx = canvas.getContext('2d')
+const playBtn = document.getElementById('playBtn')
+const restartBtn = document.getElementById('restartBtn')
+const seekBar = document.getElementById('seekBar')
+const timeLabel = document.getElementById('timeLabel')
+const statusText = document.getElementById('statusText')
+const projTitleEl = document.getElementById('projTitle')
+const designChipsEl = document.getElementById('designChips')
+
+let project = null
+let scenes = []
+let audioEl = null
+let totalDuration = 10
+let isPlaying = false
+let manualTime = 0
+let lastTick = performance.now()
+let logoImg = null
+let logoColorHex = ''
+let activeTone = 'dark'
+let activeColor = '#10a37f'
+let activeShape = 'transparent'
+
+function clamp(v, min, max) {
+  return Math.max(min, Math.min(max, v))
+}
+
+function fmtClock(sec) {
+  const s = Math.max(0, Math.floor(Number(sec) || 0))
+  const m = Math.floor(s / 60)
+  return m + ':' + String(s % 60).padStart(2, '0')
+}
+
+function isValidHex(c) {
+  return typeof c === 'string' && /^#[0-9a-fA-F]{3,8}$/.test(c.trim())
+}
+
+function hexToRgb(hex) {
+  let clean = (hex || '').replace('#', '').trim()
+  if (clean.length === 3) {
+    clean = clean.split('').map(ch => ch + ch).join('')
+  }
+  if (clean.length < 6) return { r: 16, g: 163, b: 127 }
+  const num = parseInt(clean.slice(0, 6), 16)
+  return {
+    r: (num >> 16) & 255,
+    g: (num >> 8) & 255,
+    b: num & 255
+  }
+}
+
+function rgba(hex, alpha) {
+  const { r, g, b } = hexToRgb(hex)
+  return `rgba(${r}, ${g}, ${b}, ${alpha})`
+}
+
+function extractColorFromImage(img) {
+  try {
+    const c = document.createElement('canvas')
+    const n = 48
+    c.width = n
+    c.height = n
+    const ictx = c.getContext('2d')
+    ictx.drawImage(img, 0, 0, n, n)
+    const data = ictx.getImageData(0, 0, n, n).data
+    const map = new Map()
+    for (let i = 0; i < data.length; i += 4) {
+      const a = data[i + 3]
+      if (a < 128) continue
+      const r = data[i], g = data[i + 1], b = data[i + 2]
+      const mx = Math.max(r, g, b), mn = Math.min(r, g, b)
+      const sat = mx === 0 ? 0 : (mx - mn) / mx
+      if (mx < 32 || (mx > 242 && sat < 0.12)) continue
+      const qr = Math.round(r / 24) * 24
+      const qg = Math.round(g / 24) * 24
+      const qb = Math.round(b / 24) * 24
+      const key = `${qr},${qg},${qb}`
+      map.set(key, (map.get(key) || 0) + 1 + sat * 2.5)
+    }
+    let bestKey = ''
+    let bestScore = -1
+    for (const [k, sc] of map.entries()) {
+      if (sc > bestScore) { bestScore = sc; bestKey = k }
+    }
+    if (!bestKey) return ''
+    const [r, g, b] = bestKey.split(',').map(Number)
+    return '#' + [r, g, b].map(v => clamp(v, 0, 255).toString(16).padStart(2, '0')).join('')
+  } catch (_) {
+    return ''
+  }
+}
+
+function loadDesignPrefs(id) {
+  let saved = {}
+  try {
+    const raw = localStorage.getItem('recapy_design_' + id)
+    if (raw) saved = JSON.parse(raw) || {}
+  } catch (_) {}
+
+  activeTone = (urlTone === 'light' || urlTone === 'dark')
+    ? urlTone
+    : (saved.tone === 'light' ? 'light' : 'dark')
+
+  activeShape = (urlShape === 'circle' || urlShape === 'transparent')
+    ? urlShape
+    : (saved.logoShape === 'circle' ? 'circle' : 'transparent')
+
+  if (isValidHex(urlColor)) {
+    activeColor = urlColor.trim()
+  } else if (isValidHex(saved.accentColor)) {
+    activeColor = saved.accentColor.trim()
+  } else {
+    activeColor = '#10a37f'
+  }
+
+  if (saved.logoDataUrl) {
+    const img = new Image()
+    img.onload = () => {
+      logoImg = img
+      logoColorHex = extractColorFromImage(img)
+      if (!isValidHex(urlColor) && !isValidHex(saved.accentColor) && logoColorHex) {
+        activeColor = logoColorHex
+      }
+      renderDesignChips()
+      drawFrame(getCurrentTime())
+    }
+    img.src = saved.logoDataUrl
+  }
+
+  renderDesignChips()
+}
+
+function renderDesignChips() {
+  designChipsEl.innerHTML = ''
+  const toneChip = document.createElement('span')
+  toneChip.className = 'chip'
+  toneChip.textContent = 'Tone: ' + (activeTone === 'light' ? 'Light (အနု)' : 'Dark (အရင့်)')
+
+  const shapeChip = document.createElement('span')
+  shapeChip.className = 'chip'
+  shapeChip.textContent = 'Logo: ' + (activeShape === 'circle' ? 'Circle Frame' : 'Transparent BG')
+
+  const colChip = document.createElement('span')
+  colChip.className = 'chip'
+  const dot = document.createElement('span')
+  dot.className = 'dot'
+  dot.style.background = activeColor
+  colChip.appendChild(dot)
+  const txt = document.createElement('span')
+  txt.textContent = 'Color: ' + activeColor + (logoColorHex && !urlColor ? ' (Logo)' : '')
+  colChip.appendChild(txt)
+
+  designChipsEl.appendChild(toneChip)
+  designChipsEl.appendChild(shapeChip)
+  designChipsEl.appendChild(colChip)
+}
+
+function applyAspectRatio(ratioStr) {
+  const map = {
+    '16:9': { w: 1280, h: 720, css: '16/9' },
+    '9:16': { w: 720, h: 1280, css: '9/16' },
+    '1:1':  { w: 1080, h: 1080, css: '1/1' }
+  }
+  const cfg = map[ratioStr] || map['16:9']
+  canvas.width = cfg.w
+  canvas.height = cfg.h
+  canvas.style.aspectRatio = cfg.css
+  canvas.style.maxWidth = ratioStr === '9:16' ? '440px' : (ratioStr === '1:1' ? '640px' : '900px')
+}
+
+function buildFallbackScenes(proj) {
+  if (Array.isArray(proj.scenes) && proj.scenes.length > 0) {
+    return proj.scenes.map((sc, idx) => ({
+      start: Number(sc.start ?? idx * 4),
+      end: Number(sc.end ?? (idx + 1) * 4),
+      headline: String(sc.headline || proj.title || 'Visual Story'),
+      big_number: sc.big_number ? String(sc.big_number) : '',
+      mood: String(sc.mood || 'Editorial'),
+      motion: String(sc.motion || 'Smooth'),
+      color: isValidHex(sc.color) ? sc.color : activeColor
+    }))
+  }
+  const lines = Array.isArray(proj.transcript) && proj.transcript.length > 0
+    ? proj.transcript
+    : [{ start: 0, end: 10, text: proj.title || 'RECAPY Motion Story' }]
+
+  return lines.map((line, i) => ({
+    start: Number(line.start ?? i * 4),
+    end: Number(line.end ?? (i + 1) * 4),
+    headline: String(line.text || proj.title || ''),
+    big_number: '',
+    mood: 'Motion',
+    motion: 'Kinetic',
+    color: activeColor
+  }))
+}
+
+function wrapLines(text, maxWidth, font) {
+  ctx.save()
+  ctx.font = font
+  const words = String(text || '').split(/\s+/).filter(Boolean)
+  const lines = []
+  let current = ''
+  for (const w of words) {
+    const candidate = current ? current + ' ' + w : w
+    if (ctx.measureText(candidate).width <= maxWidth) {
+      current = candidate
+    } else {
+      if (current) lines.push(current)
+      current = w
+    }
+  }
+  if (current) lines.push(current)
+  ctx.restore()
+  return lines.length ? lines : ['']
+}
+
+function drawLogoMark(W, H) {
+  if (!logoImg) return
+  const pad = Math.round(Math.min(W, H) * 0.04)
+  const size = Math.round(Math.min(W, H) * 0.11)
+  const x = W - pad - size
+  const y = pad
+
+  ctx.save()
+  if (activeShape === 'circle') {
+    const cx = x + size / 2
+    const cy = y + size / 2
+    const r = size / 2
+    ctx.beginPath()
+    ctx.arc(cx, cy, r, 0, Math.PI * 2)
+    ctx.fillStyle = activeTone === 'light' ? '#ffffff' : '#111827'
+    ctx.fill()
+    ctx.lineWidth = Math.max(2, Math.round(size * 0.03))
+    ctx.strokeStyle = activeColor
+    ctx.stroke()
+
+    ctx.save()
+    ctx.beginPath()
+    ctx.arc(cx, cy, r - ctx.lineWidth, 0, Math.PI * 2)
+    ctx.clip()
+    const innerPad = Math.round(size * 0.14)
+    ctx.drawImage(logoImg, x + innerPad, y + innerPad, size - innerPad * 2, size - innerPad * 2)
+    ctx.restore()
+  } else {
+    ctx.drawImage(logoImg, x, y, size, size)
+  }
+  ctx.restore()
+}
+
+function drawFrame(t) {
+  const W = canvas.width
+  const H = canvas.height
+  const isLight = activeTone === 'light'
+
+  // Resolve accent color: user/logo selected color takes priority when set, fallback to scene color
+  const baseColor = isValidHex(urlColor)
+    ? urlColor.trim()
+    : (logoColorHex && !urlColor ? logoColorHex : (isValidHex(activeColor) ? activeColor : '#10a37f'))
+
+  // Background gradient according to Light / Dark tone + accent tint
+  const grad = ctx.createLinearGradient(0, 0, W, H)
+  if (isLight) {
+    grad.addColorStop(0, '#f8fafc')
+    grad.addColorStop(0.55, rgba(baseColor, 0.12))
+    grad.addColorStop(1, '#eef2f6')
+  } else {
+    grad.addColorStop(0, '#090d16')
+    grad.addColorStop(0.55, rgba(baseColor, 0.22))
+    grad.addColorStop(1, '#0d1320')
+  }
+  ctx.fillStyle = grad
+  ctx.fillRect(0, 0, W, H)
+
+  // Subtle ambient glow
+  const glow = ctx.createRadialGradient(W * 0.25, H * 0.3, 20, W * 0.25, H * 0.3, Math.max(W, H) * 0.55)
+  glow.addColorStop(0, rgba(baseColor, isLight ? 0.22 : 0.30))
+  glow.addColorStop(1, 'rgba(0,0,0,0)')
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, W, H)
+
+  // Active scene
+  let sc = scenes[0] || {
+    start: 0,
+    end: totalDuration,
+    headline: project?.title || 'RECAPY',
+    big_number: '',
+    mood: 'Editorial',
+    color: baseColor
+  }
+  for (const item of scenes) {
+    if (t >= item.start && t <= item.end) {
+      sc = item
+      break
+    }
+  }
+
+  const scColor = isValidHex(urlColor)
+    ? urlColor.trim()
+    : (logoColorHex ? logoColorHex : (isValidHex(activeColor) ? activeColor : (isValidHex(sc.color) ? sc.color : '#10a37f')))
+
+  const dur = Math.max(0.5, (sc.end ?? totalDuration) - (sc.start ?? 0))
+  const localP = clamp((t - (sc.start ?? 0)) / dur, 0, 1)
+  const enterAlpha = clamp(localP / 0.18, 0, 1)
+  const floatOffset = (1 - enterAlpha) * 24
+
+  // Mood pill badge
+  const pillText = (sc.mood || 'Motion').toUpperCase()
+  const pillH = Math.round(H * 0.052)
+  ctx.save()
+  ctx.globalAlpha = enterAlpha
+  ctx.font = `700 ${Math.round(H * 0.022)}px Inter, sans-serif`
+  const pillW = Math.max(110, ctx.measureText(pillText).width + 36)
+  const pillX = (W - pillW) / 2
+  const pillY = H * 0.22 + floatOffset
+
+  ctx.fillStyle = scColor
+  ctx.beginPath()
+  ctx.roundRect(pillX, pillY, pillW, pillH, pillH / 2)
+  ctx.fill()
+
+  ctx.fillStyle = '#ffffff'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+  ctx.fillText(pillText, pillX + pillW / 2, pillY + pillH / 2 + 1)
+  ctx.restore()
+
+  // Big number if present
+  let textTopY = H * 0.37
+  if (sc.big_number) {
+    ctx.save()
+    ctx.globalAlpha = enterAlpha
+    ctx.font = `900 ${Math.round(H * 0.11)}px Inter, sans-serif`
+    ctx.fillStyle = isLight ? '#0f172a' : '#ffffff'
+    ctx.textAlign = 'center'
+    ctx.textBaseline = 'middle'
+    ctx.fillText(String(sc.big_number), W / 2, H * 0.35 + floatOffset)
+    ctx.restore()
+    textTopY = H * 0.49
+  }
+
+  // Main headline
+  const fontSize = Math.round(clamp(H * 0.056, 26, 58))
+  const fontSpec = `800 ${fontSize}px 'Noto Sans Myanmar', Inter, sans-serif`
+  const maxTextW = W * 0.78
+  const lines = wrapLines(sc.headline || '', maxTextW, fontSpec).slice(0, 3)
+  const lineHeight = fontSize * 1.32
+
+  ctx.save()
+  ctx.globalAlpha = enterAlpha
+  ctx.font = fontSpec
+  ctx.fillStyle = isLight ? '#0f172a' : '#f9fafb'
+  ctx.textAlign = 'center'
+  ctx.textBaseline = 'middle'
+
+  lines.forEach((ln, idx) => {
+    const yPos = textTopY + idx * lineHeight + floatOffset
+    ctx.fillText(ln, W / 2, yPos)
+  })
+
+  // Accent underline beneath text (not on top border of video)
+  const underlineY = textTopY + lines.length * lineHeight + 12 + floatOffset
+  const underlineW = Math.min(180, W * 0.22)
+  ctx.fillStyle = scColor
+  ctx.beginPath()
+  ctx.roundRect((W - underlineW) / 2, underlineY, underlineW, 5, 3)
+  ctx.fill()
+  ctx.restore()
+
+  // Brand logo mark (Transparent BG or Circle Frame)
+  drawLogoMark(W, H)
+}
+
+function getCurrentTime() {
+  if (audioEl && !isNaN(audioEl.duration) && isFinite(audioEl.duration) && audioEl.duration > 0) {
+    totalDuration = audioEl.duration
+    return audioEl.currentTime
+  }
+  return clamp(manualTime, 0, totalDuration)
+}
+
+function updateUI(t) {
+  const pct = totalDuration > 0 ? clamp((t / totalDuration) * 100, 0, 100) : 0
+  if (!seekBar.matches(':active')) {
+    seekBar.value = String(pct)
+  }
+  timeLabel.textContent = `${fmtClock(t)} / ${fmtClock(totalDuration)}`
+}
+
+function tick(now) {
+  const dt = Math.min(0.1, (now - lastTick) / 1000)
+  lastTick = now
+
+  if (isPlaying) {
+    if (audioEl && audioEl.src) {
+      if (audioEl.paused && !audioEl.ended) {
+        audioEl.play().catch(() => {})
+      }
+      if (audioEl.ended) {
+        isPlaying = false
+        playBtn.textContent = '▶ Play'
+        statusText.textContent = 'Finished.'
+      }
+    } else {
+      manualTime += dt
+      if (manualTime >= totalDuration) {
+        manualTime = totalDuration
+        isPlaying = false
+        playBtn.textContent = '▶ Play'
+        statusText.textContent = 'Finished.'
+      }
+    }
+  }
+
+  const cur = getCurrentTime()
+  updateUI(cur)
+  drawFrame(cur)
+  requestAnimationFrame(tick)
+}
+
+playBtn.addEventListener('click', () => {
+  if (!project) return
+  if (!isPlaying) {
+    if (getCurrentTime() >= totalDuration - 0.05) {
+      if (audioEl && audioEl.src) audioEl.currentTime = 0
+      manualTime = 0
+    }
+    isPlaying = true
+    playBtn.textContent = '❚❚ Pause'
+    statusText.textContent = 'Playing preview…'
+    if (audioEl && audioEl.src) {
+      audioEl.play().catch(() => {})
+    }
+  } else {
+    isPlaying = false
+    playBtn.textContent = '▶ Play'
+    statusText.textContent = 'Paused.'
+    if (audioEl && audioEl.src) {
+      audioEl.pause()
+    }
+  }
+})
+
+restartBtn.addEventListener('click', () => {
+  manualTime = 0
+  if (audioEl && audioEl.src) {
+    audioEl.currentTime = 0
+  }
+  drawFrame(0)
+  updateUI(0)
+})
+
+seekBar.addEventListener('input', () => {
+  const pct = clamp(Number(seekBar.value) / 100, 0, 1)
+  const target = pct * totalDuration
+  manualTime = target
+  if (audioEl && audioEl.src && !isNaN(audioEl.duration) && isFinite(audioEl.duration)) {
+    audioEl.currentTime = target
+  }
+  drawFrame(target)
+  updateUI(target)
+})
+
+async function init() {
+  if (!projectId) {
+    statusText.textContent = 'Missing project id.'
+    drawFrame(0)
+    return
+  }
+
+  loadDesignPrefs(projectId)
+
+  const { data: { session } } = await supabase.auth.getSession()
+  if (!session) {
+    location.replace('login.html')
+    return
+  }
+
+  const { data, error } = await supabase
+    .from('projects')
+    .select('id,title,aspect_ratio,audio_path,transcript,scenes')
+    .eq('id', projectId)
+    .single()
+
+  if (error || !data) {
+    statusText.textContent = 'Could not load project.'
+    drawFrame(0)
+    return
+  }
+
+  project = data
+  projTitleEl.textContent = project.title || 'Motion Preview'
+  applyAspectRatio(project.aspect_ratio)
+  scenes = buildFallbackScenes(project)
+
+  const lastEnd = scenes.reduce((acc, s) => Math.max(acc, Number(s.end) || 0), 0)
+  if (lastEnd > 0) totalDuration = lastEnd
+
+  if (project.audio_path) {
+    const { data: signed } = await supabase.storage
+      .from('audio')
+      .createSignedUrl(project.audio_path, 3600)
+    if (signed && signed.signedUrl) {
+      audioEl = new Audio(signed.signedUrl)
+      audioEl.preload = 'metadata'
+      audioEl.onloadedmetadata = () => {
+        if (isFinite(audioEl.duration) && audioEl.duration > 0) {
+          totalDuration = audioEl.duration
+          updateUI(getCurrentTime())
+        }
+      }
+      audioEl.onended = () => {
+        isPlaying = false
+        playBtn.textContent = '▶ Play'
+        statusText.textContent = 'Finished.'
+      }
+    }
+  }
+
+  statusText.textContent = 'Ready. Tap Play.'
+  drawFrame(0)
+  updateUI(0)
+  requestAnimationFrame(tick)
+}
+
+init()
+</script>
+</body>
+</html>
