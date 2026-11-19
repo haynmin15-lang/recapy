@@ -115,7 +115,7 @@ h1{letter-spacing:-1.5px}
 <div class="workspace">
 <section class="card" id="uploadSection">
 <div class="card-title">Upload your audio</div>
-<p class="card-desc">Start with an audio file from your device.</p>
+<p class="card-desc">Start with an audio file from your device. Maximum 50 MB.</p>
 <label class="upload" for="fileInput">
 <div class="upload-icon">↑</div>
 <strong>Choose an audio file</strong>
@@ -158,6 +158,7 @@ h1{letter-spacing:-1.5px}
 <script>
 let selectedFile = null;
 let selectedRatio = "16:9";
+const MAX_BYTES = 50 * 1024 * 1024;
 const fileInput = document.getElementById("fileInput");
 const fileName = document.getElementById("fileName");
 const createBtn = document.getElementById("createBtn");
@@ -168,6 +169,11 @@ if (!file) return;
 const extension = file.name.split(".").pop().toLowerCase();
 if (!["mp3","wav","m4a","aac"].includes(extension)) {
 notify("Please choose an MP3, WAV or M4A file.");
+this.value = "";
+return;
+}
+if (file.size > MAX_BYTES) {
+notify("This file is too large. The maximum is 50 MB.");
 this.value = "";
 return;
 }
@@ -204,6 +210,12 @@ document.getElementById("projectsSection").scrollIntoView({
 behavior:"smooth",
 block:"start"
 });
+}
+
+function formatSize(bytes) {
+if (!bytes) return "";
+if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + " KB";
+return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
 </script>
 <script type="module">
@@ -256,8 +268,11 @@ if (!session) {
     const h3 = document.createElement('h3')
     h3.textContent = p.title
 
+    const parts = [p.aspect_ratio]
+    if (p.audio_size) parts.push(formatSize(p.audio_size))
+    parts.push(new Date(p.created_at).toLocaleDateString('en-GB'))
     const info = document.createElement('p')
-    info.textContent = p.aspect_ratio + ' · ' + new Date(p.created_at).toLocaleDateString()
+    info.textContent = parts.join(' · ')
 
     const row = document.createElement('div')
     row.className = 'project-row'
@@ -270,7 +285,10 @@ if (!session) {
     del.className = 'del'
     del.textContent = 'Delete'
     del.onclick = async () => {
-      if (!confirm('Delete this project?')) return
+      if (!confirm('Delete this project and its audio file?')) return
+      if (p.audio_path) {
+        await supabase.storage.from('audio').remove([p.audio_path])
+      }
       const { error } = await supabase.from('projects').delete().eq('id', p.id)
       if (error) { notify('Could not delete the project.'); return }
       notify('Project deleted.')
@@ -289,7 +307,7 @@ if (!session) {
   async function loadProjects() {
     const { data, error } = await supabase
       .from('projects')
-      .select('id,title,aspect_ratio,status,created_at')
+      .select('id,title,aspect_ratio,status,created_at,audio_path,audio_size')
       .order('created_at', { ascending: false })
       .limit(9)
     list.textContent = ''
@@ -298,18 +316,69 @@ if (!session) {
     data.forEach(p => list.appendChild(projectCard(p)))
   }
 
+  function resetUploadForm() {
+    createBtn.textContent = 'Continue to Studio →'
+    selectedFile = null
+    fileInput.value = ''
+    fileName.textContent = 'No file selected'
+    createBtn.disabled = true
+  }
+
   window.startProject = async function () {
     if (!selectedFile) { notify('Please upload an audio file first.'); return }
+    if (selectedFile.size > MAX_BYTES) { notify('This file is too large. The maximum is 50 MB.'); return }
+
     createBtn.disabled = true
-    const title = selectedFile.name.replace(/\.[^.]+$/, '').slice(0, 80) || 'Untitled project'
-    const { error } = await supabase.from('projects').insert({
-      user_id: user.id,
-      title: title,
-      aspect_ratio: selectedRatio
-    })
-    createBtn.disabled = false
-    if (error) { notify('Could not save the project. Try again.'); return }
-    notify('Project saved. Audio upload and AI Studio come next.')
+    createBtn.textContent = 'Saving project…'
+
+    const file = selectedFile
+    const title = file.name.replace(/\.[^.]+$/, '').slice(0, 80) || 'Untitled project'
+    const ext = file.name.split('.').pop().toLowerCase()
+
+    const { data: proj, error: e1 } = await supabase
+      .from('projects')
+      .insert({ user_id: user.id, title: title, aspect_ratio: selectedRatio, status: 'uploading' })
+      .select('id')
+      .single()
+
+    if (e1 || !proj) {
+      createBtn.textContent = 'Continue to Studio →'
+      createBtn.disabled = false
+      notify('Could not save the project. Try again.')
+      return
+    }
+
+    createBtn.textContent = 'Uploading audio…'
+    const path = user.id + '/' + proj.id + '.' + ext
+
+    const { error: e2 } = await supabase.storage
+      .from('audio')
+      .upload(path, file, { contentType: file.type || 'audio/mpeg', upsert: false })
+
+    if (e2) {
+      await supabase.from('projects').delete().eq('id', proj.id)
+      createBtn.textContent = 'Continue to Studio →'
+      createBtn.disabled = false
+      notify('Audio upload failed. Check your connection and try again.')
+      return
+    }
+
+    const { error: e3 } = await supabase
+      .from('projects')
+      .update({ audio_path: path, audio_size: file.size, status: 'draft', updated_at: new Date().toISOString() })
+      .eq('id', proj.id)
+
+    if (e3) {
+      await supabase.storage.from('audio').remove([path])
+      await supabase.from('projects').delete().eq('id', proj.id)
+      createBtn.textContent = 'Continue to Studio →'
+      createBtn.disabled = false
+      notify('Could not finish saving the project. Try again.')
+      return
+    }
+
+    resetUploadForm()
+    notify('Audio uploaded and project saved.')
     await loadProjects()
     goProjects()
   }
