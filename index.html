@@ -68,6 +68,13 @@ h1 span{color:var(--red)}
 .project-row .status{margin-top:0}
 .del{background:#1c1c1c;border:1px solid #333;color:#ff7777;font-size:10px;padding:5px 9px;border-radius:7px}
 .del:hover{border-color:var(--red)}
+.tr-btn{width:100%;margin-top:12px;background:#291515;border:1px solid var(--red);color:white;font-size:11px;font-weight:700;padding:9px;border-radius:7px}
+.tr-btn:disabled{opacity:.5;cursor:wait}
+.tr-box{margin-top:12px;background:#151515;border:1px solid #2a2a2a;border-radius:8px;padding:10px}
+.tr-box summary{font-size:11px;color:#ddd;cursor:pointer}
+.tr-list{margin-top:10px;max-height:260px;overflow-y:auto;font-size:11px;line-height:1.8;color:#ccc}
+.tr-line{margin-bottom:8px;word-break:break-word}
+.tr-time{color:var(--red);font-size:10px;margin-right:6px}
 .empty{grid-column:1/-1;text-align:center;color:var(--muted);font-size:12px;line-height:1.8}
 .footer{color:#555;font-size:10px;text-align:center;padding:35px 0 15px}
 .toast{display:none;position:fixed;bottom:25px;left:50%;transform:translateX(-50%);background:#242424;border:1px solid #444;padding:14px 19px;border-radius:9px;font-size:12px;z-index:10;width:max-content;max-width:90%}
@@ -217,6 +224,12 @@ if (!bytes) return "";
 if (bytes < 1024 * 1024) return Math.max(1, Math.round(bytes / 1024)) + " KB";
 return (bytes / (1024 * 1024)).toFixed(1) + " MB";
 }
+
+function fmtTime(sec) {
+const s = Math.max(0, Math.round(Number(sec) || 0));
+const m = Math.floor(s / 60);
+return String(m).padStart(2, "0") + ":" + String(s % 60).padStart(2, "0");
+}
 </script>
 <script type="module">
 import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm'
@@ -255,6 +268,63 @@ if (!session) {
     d.className = 'card empty'
     d.textContent = text
     return d
+  }
+
+  async function transcribeProject(p, button) {
+    button.disabled = true
+    button.textContent = 'Transcribing… (about 1 minute)'
+    try {
+      const { data, error } = await supabase.functions.invoke('rapid-action', {
+        body: { project_id: p.id }
+      })
+      if (error) {
+        let msg = 'Transcription failed. Try again.'
+        try {
+          const j = await error.context.json()
+          if (j && j.error) msg = String(j.error)
+        } catch (_) {}
+        notify(msg)
+        button.disabled = false
+        button.textContent = p.transcript ? 'Re-transcribe' : 'Transcribe'
+        return
+      }
+      if (data && data.error) {
+        notify(String(data.error))
+        button.disabled = false
+        button.textContent = p.transcript ? 'Re-transcribe' : 'Transcribe'
+        return
+      }
+      notify('Transcription finished.')
+      await loadProjects()
+    } catch (e) {
+      notify('Transcription failed. Check your connection.')
+      button.disabled = false
+      button.textContent = p.transcript ? 'Re-transcribe' : 'Transcribe'
+    }
+  }
+
+  function transcriptBox(segments) {
+    const det = document.createElement('details')
+    det.className = 'tr-box'
+    const sum = document.createElement('summary')
+    sum.textContent = 'View transcript (' + segments.length + ' lines)'
+    det.appendChild(sum)
+    const wrap = document.createElement('div')
+    wrap.className = 'tr-list'
+    segments.forEach(s => {
+      const line = document.createElement('div')
+      line.className = 'tr-line'
+      const t = document.createElement('span')
+      t.className = 'tr-time'
+      t.textContent = fmtTime(s.start) + '–' + fmtTime(s.end)
+      const x = document.createElement('span')
+      x.textContent = s.text
+      line.appendChild(t)
+      line.appendChild(x)
+      wrap.appendChild(line)
+    })
+    det.appendChild(wrap)
+    return det
   }
 
   function projectCard(p) {
@@ -300,6 +370,19 @@ if (!session) {
     card.appendChild(icon)
     card.appendChild(h3)
     card.appendChild(info)
+
+    if (p.audio_path) {
+      const tr = document.createElement('button')
+      tr.className = 'tr-btn'
+      tr.textContent = Array.isArray(p.transcript) ? 'Re-transcribe' : 'Transcribe'
+      tr.onclick = () => transcribeProject(p, tr)
+      card.appendChild(tr)
+    }
+
+    if (Array.isArray(p.transcript) && p.transcript.length) {
+      card.appendChild(transcriptBox(p.transcript))
+    }
+
     card.appendChild(row)
     return card
   }
@@ -307,7 +390,7 @@ if (!session) {
   async function loadProjects() {
     const { data, error } = await supabase
       .from('projects')
-      .select('id,title,aspect_ratio,status,created_at,audio_path,audio_size')
+      .select('id,title,aspect_ratio,status,created_at,audio_path,audio_size,transcript')
       .order('created_at', { ascending: false })
       .limit(9)
     list.textContent = ''
@@ -398,4 +481,4 @@ supabase.auth.onAuthStateChange((event) => {
 })
 </script>
 </body>
-  </html>
+</html>
