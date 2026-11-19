@@ -129,11 +129,11 @@ h1{letter-spacing:-1.5px}
 <div class="workspace">
 <section class="card" id="uploadSection">
 <div class="card-title">Upload your audio</div>
-<p class="card-desc">Start with an audio file from your device. Maximum 50 MB.</p>
+<p class="card-desc">Start with an audio file from your device. Maximum 2 minutes and 50 MB.</p>
 <label class="upload" for="fileInput">
 <div class="upload-icon">↑</div>
 <strong>Choose an audio file</strong>
-<small>MP3 · WAV · M4A</small>
+<small>MP3 · WAV · M4A · up to 2 minutes</small>
 <div class="file-name" id="fileName">No file selected</div>
 </label>
 <input id="fileInput" type="file" accept="audio/mpeg,audio/wav,audio/mp4,audio/x-m4a,.mp3,.wav,.m4a">
@@ -173,11 +173,33 @@ h1{letter-spacing:-1.5px}
 let selectedFile = null;
 let selectedRatio = "16:9";
 const MAX_BYTES = 50 * 1024 * 1024;
+const MAX_SECONDS = 120;
 const fileInput = document.getElementById("fileInput");
 const fileName = document.getElementById("fileName");
 const createBtn = document.getElementById("createBtn");
 
-fileInput.addEventListener("change", function() {
+function getAudioDuration(file) {
+return new Promise(function(resolve) {
+const url = URL.createObjectURL(file);
+const audio = new Audio();
+let done = false;
+function finish(value) {
+if (done) return;
+done = true;
+URL.revokeObjectURL(url);
+resolve(value);
+}
+audio.preload = "metadata";
+audio.onloadedmetadata = function() {
+finish(isFinite(audio.duration) ? audio.duration : null);
+};
+audio.onerror = function() { finish(null); };
+setTimeout(function() { finish(null); }, 8000);
+audio.src = url;
+});
+}
+
+fileInput.addEventListener("change", async function() {
 const file = this.files[0];
 if (!file) return;
 const extension = file.name.split(".").pop().toLowerCase();
@@ -191,6 +213,26 @@ notify("This file is too large. The maximum is 50 MB.");
 this.value = "";
 return;
 }
+
+selectedFile = null;
+createBtn.disabled = true;
+fileName.textContent = "Checking audio length…";
+
+const secs = await getAudioDuration(file);
+
+if (secs === null) {
+notify("Could not read this audio file. Try another file.");
+fileInput.value = "";
+fileName.textContent = "No file selected";
+return;
+}
+if (secs > MAX_SECONDS + 0.5) {
+notify("This audio is too long. The maximum is 2 minutes.");
+fileInput.value = "";
+fileName.textContent = "No file selected";
+return;
+}
+
 selectedFile = file;
 fileName.textContent = "✓ " + file.name;
 createBtn.disabled = false;
@@ -450,7 +492,7 @@ if (!session) {
       const tr = document.createElement('button')
       tr.className = 'tr-btn'
       tr.textContent = hasTranscript ? 'Re-transcribe' : 'Transcribe'
-      tr.onclick = () => transcribeProject(p, tr)
+      tr.onclick = () => transcribeProject(p,tr)
       card.appendChild(tr)
     }
 
@@ -481,9 +523,7 @@ if (!session) {
     list.textContent = ''
     if (error) { list.appendChild(emptyCard('Could not load projects. Refresh the page.')); return }
     if (!data.length) { list.appendChild(emptyCard('No projects yet. Upload an audio file above to create your first one.')); return }
-    data.forEach(p => list.appendChild 
-
-(projectCard(p)))
+    data.forEach(p => list.appendChild(projectCard(p)))
   }
 
   function resetUploadForm() {
@@ -569,4 +609,3 @@ supabase.auth.onAuthStateChange((event) => {
 </script>
 </body>
 </html>
-
