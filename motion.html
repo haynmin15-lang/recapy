@@ -43,9 +43,16 @@ const FONT = '"Noto Sans Myanmar","Padauk","Myanmar Text",sans-serif';
 const MY = '၀၁၂၃၄၅၆၇၈၉';
 let scenes = [], W = 1280, H = 720, dur = 0;
 const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
-const ease = x => 1 - Math.pow(1 - x, 3);
+const ease = x => 1 - Math.pow(1 - clamp(x), 3);
+const back = x => { x = clamp(x); const c = 1.70158, k = c + 1; return 1 + k * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
 const toEn = s => String(s).replace(/[၀-၉]/g, c => MY.indexOf(c));
 const toMy = s => String(s).replace(/[0-9]/g, c => MY[+c]);
+function rgba(h, a) {
+  h = String(h).replace('#', '');
+  if (h.length === 3) h = h.split('').map(x => x + x).join('');
+  const n = parseInt(h, 16);
+  return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + a + ')';
+}
 function fmt(t) { t = Math.max(0, Math.floor(t || 0)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); }
 function toSec(v) {
   if (typeof v === 'number') return v;
@@ -92,103 +99,294 @@ function wrap(txt, maxW) {
   if (line) out.push(line);
   return out;
 }
-function text(str, x, y, size, color, weight, maxW, alpha) {
-  ctx.font = weight + ' ' + size + 'px ' + FONT;
-  ctx.fillStyle = color;
-  ctx.globalAlpha = alpha;
-  ctx.textAlign = 'center';
-  ctx.textBaseline = 'middle';
-  const lines = wrap(str, maxW), h = size * 1.6, y0 = y - (lines.length - 1) * h / 2;
-  lines.forEach((l, i) => ctx.fillText(l, x, y0 + i * h));
-  ctx.globalAlpha = 1;
+function rr(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
 }
+function fit(s, size, wt, maxW) {
+  ctx.font = wt + ' ' + size + 'px ' + FONT;
+  const w = ctx.measureText(s).width;
+  return w > maxW ? size * maxW / w : size;
+}
+function txt(s, x, y, size, color, wt, al) {
+  ctx.font = wt + ' ' + size + 'px ' + FONT;
+  ctx.fillStyle = color;
+  ctx.textAlign = al || 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(s, x, y);
+}
+function noShadow() { ctx.shadowColor = 'transparent'; ctx.shadowBlur = 0; ctx.shadowOffsetY = 0; }
 function sceneAt(t) {
   let s = scenes[0];
   for (const c of scenes) if (t >= c.s) s = c;
   return s;
 }
-function chart(sc, p, d, col, a, u, down) {
-  const x0 = W * 0.08, x1 = W * 0.92, y0 = H * 0.5, y1 = H * 0.9, n = 24, pts = [];
-  for (let i = 0; i < n; i++) {
-    const base = down ? 1 - i / (n - 1) : i / (n - 1);
-    const nz = (i > 0 && i < n - 1) ? (Math.sin(i * 7.3) * 0.5 + Math.sin(i * 2.1 + 1) * 0.5) * 0.08 : 0;
-    const v = clamp(base * 0.9 + 0.05 + nz);
-    pts.push([x0 + (x1 - x0) * i / (n - 1), y0 + (1 - v) * (y1 - y0)]);
-  }
-  ctx.globalAlpha = a * 0.15;
-  ctx.strokeStyle = '#fff';
-  ctx.lineWidth = 2;
-  for (let k = 0; k < 4; k++) {
-    const y = y0 + (y1 - y0) * k / 3;
-    ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
-  }
-  const prog = ease(clamp(p / Math.min(3, d * 0.8))) * (n - 1);
-  const k = Math.floor(prog), fr = prog - k;
-  const draw = pts.slice(0, k + 1);
-  if (k < n - 1) draw.push([pts[k][0] + (pts[k + 1][0] - pts[k][0]) * fr, pts[k][1] + (pts[k + 1][1] - pts[k][1]) * fr]);
-  ctx.globalAlpha = a * 0.25;
-  ctx.fillStyle = col;
-  ctx.beginPath();
-  ctx.moveTo(draw[0][0], y1);
-  draw.forEach(q => ctx.lineTo(q[0], q[1]));
-  ctx.lineTo(draw[draw.length - 1][0], y1);
-  ctx.closePath(); ctx.fill();
-  ctx.globalAlpha = a;
-  ctx.strokeStyle = col;
-  ctx.lineWidth = u * 0.012;
-  ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  ctx.beginPath();
-  draw.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]));
-  ctx.stroke();
-  const e = draw[draw.length - 1];
-  ctx.fillStyle = col;
-  ctx.beginPath(); ctx.arc(e[0], e[1], u * 0.02, 0, Math.PI * 2); ctx.fill();
+/* ---------- background: always moving ---------- */
+function bg(col, T) {
   ctx.globalAlpha = 1;
+  ctx.fillStyle = '#090b14';
+  ctx.fillRect(0, 0, W, H);
+  for (let i = 0; i < 3; i++) {
+    const x = W * (.5 + .38 * Math.sin(T * .35 + i * 2.1)), y = H * (.5 + .35 * Math.cos(T * .28 + i * 1.7));
+    const r = Math.max(W, H) * (.45 + .1 * Math.sin(T + i));
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r);
+    g.addColorStop(0, rgba(col, i ? .2 : .32));
+    g.addColorStop(1, rgba(col, 0));
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+  }
+  const u = Math.min(W, H), gap = u * .07, off = (T * u * .02) % gap;
+  ctx.fillStyle = 'rgba(255,255,255,.07)';
+  ctx.beginPath();
+  for (let x = -gap + off; x < W + gap; x += gap) {
+    for (let y = -gap + off; y < H + gap; y += gap) { ctx.moveTo(x + u * .004, y); ctx.arc(x, y, u * .004, 0, 6.283); }
+  }
+  ctx.fill();
+  ctx.fillStyle = rgba(col, .35);
+  for (let i = 0; i < 14; i++) {
+    const sp = .03 + (i % 5) * .01;
+    const x = ((i * .137 + T * sp) % 1) * W, y = H - ((i * .291 + T * sp * 1.5) % 1) * H;
+    ctx.beginPath();
+    ctx.arc(x, y, u * (.006 + (i % 4) * .004), 0, 6.283);
+    ctx.fill();
+  }
+}
+/* ---------- kinetic headline ---------- */
+function kin(str, cx, cy, size, maxW, p, T, color, barCol) {
+  ctx.font = '900 ' + size + 'px ' + FONT;
+  const lines = wrap(str, maxW), h = size * 1.5, y0 = cy - (lines.length - 1) * h / 2;
+  lines.forEach((l, i) => {
+    const q = clamp((p - i * .18) / .55), e = back(q);
+    ctx.save();
+    ctx.globalAlpha = clamp(q * 2);
+    ctx.translate(cx, y0 + i * h + (1 - e) * size * 1.2 + Math.sin(T * 1.6 + i) * size * .04);
+    ctx.rotate((1 - e) * (i % 2 ? .08 : -.08));
+    ctx.scale(.85 + .15 * e, .85 + .15 * e);
+    ctx.shadowColor = 'rgba(0,0,0,.55)';
+    ctx.shadowBlur = 12;
+    txt(l, 0, 0, size, color, 900);
+    ctx.restore();
+  });
+  const bw = ease((p - .5) / .5) * size * 3 * (1 + .08 * Math.sin(T * 3));
+  ctx.fillStyle = barCol;
+  rr(cx - bw / 2, y0 + (lines.length - 1) * h + h * .62, bw, size * .1, size * .05);
+  ctx.fill();
+}
+function panel(cx, cy, w, h, col, s, a, fn) {
+  ctx.save();
+  ctx.globalAlpha = clamp(a);
+  ctx.translate(cx, cy);
+  const k = Math.max(.01, s);
+  ctx.scale(k, k);
+  ctx.shadowColor = rgba(col, .5);
+  ctx.shadowBlur = 45;
+  ctx.shadowOffsetY = 16;
+  ctx.fillStyle = 'rgba(20,24,42,.94)';
+  rr(-w / 2, -h / 2, w, h, Math.min(w, h) * .1);
+  ctx.fill();
+  noShadow();
+  ctx.strokeStyle = rgba(col, .7);
+  ctx.lineWidth = 3;
+  ctx.stroke();
+  if (fn) fn();
+  ctx.restore();
+}
+/* ---------- scene types ---------- */
+function numScene(sc, p, T, u) {
+  const cw = Math.min(W * .8, u * 1.1), ch = u * .5, cy = H * .56;
+  const s = back((p - .15) / .5) * (1 + .015 * Math.sin(T * 3)), a = ease((p - .1) / .3);
+  const cnt = ease(p / Math.min(2.5, sc.d * .7));
+  panel(W / 2, cy, cw, ch, sc.col, s, a, () => {
+    const sz = fit(fmtNum(sc.num, 1), u * .2, 900, cw * .86);
+    txt(fmtNum(sc.num, cnt), 0, -ch * .08, sz, sc.col, 900);
+    const bw = cw * .7, by = ch * .3;
+    ctx.fillStyle = 'rgba(255,255,255,.1)';
+    rr(-bw / 2, by, bw, 16, 8);
+    ctx.fill();
+    ctx.fillStyle = sc.col;
+    rr(-bw / 2, by, Math.max(16, bw * cnt), 16, 8);
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(-bw / 2 + bw * cnt, by + 8, 14 + 3 * Math.sin(T * 6), 0, 6.283);
+    ctx.fill();
+    for (let i = 0; i < 3; i++) {
+      const an = T * .8 + i * 2.09;
+      ctx.beginPath();
+      ctx.arc(Math.cos(an) * cw * .56, Math.sin(an) * ch * .56, 8, 0, 6.283);
+      ctx.fill();
+    }
+  });
+}
+function chartScene(sc, p, T, u, down) {
+  const cw = Math.min(W * .84, u * 1.2), ch = u * .56, cy = H * .57;
+  const s = back((p - .15) / .5), a = ease((p - .1) / .3);
+  const cnt = ease(p / Math.min(2.5, sc.d * .7));
+  panel(W / 2, cy, cw, ch, sc.col, s, a, () => {
+    const x0 = -cw * .42, x1 = cw * .42, y0 = -ch * .1, y1 = ch * .38, n = 24, pts = [];
+    for (let i = 0; i < n; i++) {
+      const base = down ? 1 - i / (n - 1) : i / (n - 1);
+      const nz = (i > 0 && i < n - 1) ? (Math.sin(i * 7.3 + T * 1.2) * .5 + Math.sin(i * 2.1 + 1 + T * .7) * .5) * .08 : 0;
+      const v = clamp(base * .9 + .05 + nz);
+      pts.push([x0 + (x1 - x0) * i / (n - 1), y1 - v * (y1 - y0)]);
+    }
+    ctx.strokeStyle = 'rgba(255,255,255,.12)';
+    ctx.lineWidth = 2;
+    for (let k = 0; k < 4; k++) {
+      const y = y0 + (y1 - y0) * k / 3;
+      ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(x1, y); ctx.stroke();
+    }
+    const prog = ease(p / Math.min(3, sc.d * .8)) * (n - 1), k = Math.min(n - 1, Math.floor(prog)), fr = prog - k;
+    const draw = pts.slice(0, k + 1);
+    if (k < n - 1) draw.push([pts[k][0] + (pts[k + 1][0] - pts[k][0]) * fr, pts[k][1] + (pts[k + 1][1] - pts[k][1]) * fr]);
+    ctx.globalAlpha = a * .25;
+    ctx.fillStyle = sc.col;
+    ctx.beginPath();
+    ctx.moveTo(draw[0][0], y1);
+    draw.forEach(q => ctx.lineTo(q[0], q[1]));
+    ctx.lineTo(draw[draw.length - 1][0], y1);
+    ctx.closePath();
+    ctx.fill();
+    ctx.globalAlpha = a;
+    ctx.strokeStyle = sc.col;
+    ctx.lineWidth = u * .012;
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    draw.forEach((q, i) => i ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]));
+    ctx.stroke();
+    const e = draw[draw.length - 1], fq = (T * 1.5) % 1;
+    ctx.fillStyle = sc.col;
+    ctx.beginPath();
+    ctx.arc(e[0], e[1], u * .02 + u * .006 * Math.sin(T * 6), 0, 6.283);
+    ctx.fill();
+    ctx.globalAlpha = a * (1 - fq);
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.arc(e[0], e[1], u * .02 + fq * u * .06, 0, 6.283);
+    ctx.stroke();
+    ctx.globalAlpha = a;
+    if (sc.num) txt(fmtNum(sc.num, cnt), 0, -ch * .3, fit(fmtNum(sc.num, 1), u * .11, 900, cw * .8), sc.col, 900);
+    else txt(down ? '▼' : '▲', 0, -ch * .3, u * .09, sc.col, 900);
+  });
+}
+function listScene(sc, p, T, u, hs) {
+  const items = sc.items.slice(0, 5), n = items.length;
+  const top = H * .3, avail = H * .65;
+  const bw = Math.min(W * .86, u * 1.3), bh = Math.min(hs * 1.9, avail / (n * 1.25));
+  const step = Math.min(.6, sc.d * .7 / n);
+  items.forEach((it, i) => {
+    const q = clamp((p - .5 - i * step) / .5), e = back(q), side = i % 2 ? 1 : -1;
+    const x = W / 2 + side * (1 - ease(q)) * W * .5, y = top + bh / 2 + i * bh * 1.25 + Math.sin(T * 2 + i) * 5;
+    ctx.save();
+    ctx.globalAlpha = clamp(q * 2);
+    ctx.translate(x, y);
+    ctx.scale(.9 + .1 * e, .9 + .1 * e);
+    ctx.shadowColor = rgba(sc.col, .4);
+    ctx.shadowBlur = 24;
+    ctx.shadowOffsetY = 8;
+    ctx.fillStyle = 'rgba(20,24,42,.94)';
+    rr(-bw / 2, -bh / 2, bw, bh, bh / 2);
+    ctx.fill();
+    noShadow();
+    ctx.strokeStyle = rgba(sc.col, .7);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    ctx.fillStyle = sc.col;
+    ctx.beginPath();
+    ctx.arc(-bw / 2 + bh / 2, 0, bh * .34, 0, 6.283);
+    ctx.fill();
+    txt(String(i + 1), -bw / 2 + bh / 2, 0, bh * .4, '#fff', 900);
+    txt(it, -bw / 2 + bh, 0, fit(it, hs * .8, 700, bw - bh * 1.4), '#fff', 700, 'left');
+    ctx.restore();
+  });
+}
+function chips(sc, p, T, u) {
+  const items = sc.items.slice(0, 4);
+  if (!items.length) return;
+  const sz = u * .04, gap = u * .025, keep = [];
+  ctx.font = '700 ' + sz + 'px ' + FONT;
+  let tot = -gap;
+  for (const it of items) {
+    const w = ctx.measureText(it).width + sz * 1.6;
+    if (tot + gap + w > W * .92) break;
+    tot += gap + w;
+    keep.push([it, w]);
+  }
+  let x = W / 2 - tot / 2;
+  keep.forEach(([it, w], i) => {
+    const q = back((p - .8 - i * .15) / .45), y = H * .9 + Math.sin(T * 2 + i * 1.3) * 7;
+    ctx.save();
+    ctx.globalAlpha = clamp(q * 2);
+    ctx.translate(x + w / 2, y);
+    ctx.scale(Math.max(.01, q), Math.max(.01, q));
+    ctx.fillStyle = rgba(sc.col, .22);
+    rr(-w / 2, -sz, w, sz * 2, sz);
+    ctx.fill();
+    ctx.strokeStyle = rgba(sc.col, .8);
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    txt(it, 0, 0, sz, '#fff', 700);
+    ctx.restore();
+    x += w + gap;
+  });
 }
 function drawFrame(t) {
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = '#0b0b10';
-  ctx.fillRect(0, 0, W, H);
-  const sc = sceneAt(t);
+  const T = performance.now() / 1000, sc = sceneAt(t);
+  bg(sc ? sc.col : MOODS.neutral, T);
   if (!sc) return;
-  const col = sc.col, p = Math.max(0, t - sc.s), d = Math.max(0.5, sc.e - sc.s);
+  const u = Math.min(W, H), hs = u * .075, mw = W * .86, m = sc.motion;
+  const p0 = t - sc.s, p = audio.paused ? Math.max(p0, 1.6) : p0;
   const last = sc === scenes[scenes.length - 1];
-  const a = Math.min(clamp(p / 0.5), last ? 1 : clamp((sc.e - t) / 0.3));
-  const u = Math.min(W, H), mw = W * 0.86, hs = u * 0.075;
-  const g = ctx.createRadialGradient(W / 2, H * 0.35, 0, W / 2, H * 0.35, Math.max(W, H) * 0.8);
-  g.addColorStop(0, col);
-  g.addColorStop(1, 'rgba(0,0,0,0)');
-  ctx.globalAlpha = 0.3 * a;
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
-  ctx.globalAlpha = 1;
-  ctx.fillStyle = col;
-  ctx.fillRect(0, 0, W * clamp(p / d), 8);
-  const slide = (1 - ease(clamp(p / 0.6))) * 40;
-  const num = sc.num;
-  const cnt = ease(clamp(p / Math.min(2.5, d * 0.7)));
-  const m = sc.motion;
-  if (m === 'number_counter' && num) {
-    text(sc.headline, W / 2, H * 0.2 + slide, hs, '#fff', 700, mw, a);
-    text(fmtNum(num, cnt), W / 2, H * 0.55, u * 0.17, col, 900, mw, a);
+  const outA = last ? 1 : clamp((sc.e - t) / .3);
+  const hy = H * (W > H ? .17 : .15), listOk = m === 'list' && sc.items.length;
+  ctx.save();
+  const z = 1 + .04 * clamp(p0 / sc.d) + (1 - outA) * .06;
+  ctx.translate(W / 2, H / 2); ctx.scale(z, z); ctx.translate(-W / 2, -H / 2);
+  if (m === 'number_counter' && sc.num) {
+    kin(sc.headline, W / 2, hy, hs, mw, p, T, '#fff', sc.col);
+    numScene(sc, p, T, u);
   } else if (m === 'chart_up' || m === 'chart_down') {
-    text(sc.headline, W / 2, H * 0.17 + slide, hs, '#fff', 700, mw, a);
-    if (num) text(fmtNum(num, cnt), W / 2, H * 0.37, u * 0.11, col, 900, mw, a);
-    chart(sc, p, d, col, a, u, m === 'chart_down');
-  } else if (m === 'list' && sc.items.length) {
-    text(sc.headline, W / 2, H * 0.16 + slide, hs, '#fff', 700, mw, a);
-    const step = Math.min(0.6, (d * 0.7) / sc.items.length);
-    sc.items.forEach((it, i) => {
-      const q = clamp((p - 0.5 - i * step) / 0.4);
-      text('• ' + it, W / 2, H * 0.34 + i * hs * 1.9 + (1 - q) * 30, hs * 0.9, col, 700, mw, a * q);
-    });
+    kin(sc.headline, W / 2, hy, hs, mw, p, T, '#fff', sc.col);
+    chartScene(sc, p, T, u, m === 'chart_down');
+  } else if (listOk) {
+    kin(sc.headline, W / 2, hy, hs, mw, p, T, '#fff', sc.col);
+    listScene(sc, p, T, u, hs);
   } else if (m === 'quote') {
-    text('“', W / 2, H * 0.24, u * 0.3, col, 900, mw, a * 0.5);
-    text(sc.headline, W / 2, H * 0.55 + slide, hs * 1.1, '#fff', 700, mw, a);
+    const q = back(p / .6);
+    ctx.save();
+    ctx.globalAlpha = .5 * clamp(q);
+    ctx.translate(W / 2, H * .24);
+    ctx.scale(Math.max(.01, q * (1 + .05 * Math.sin(T * 2))), Math.max(.01, q * (1 + .05 * Math.sin(T * 2))));
+    txt('“', 0, 0, u * .4, sc.col, 900);
+    ctx.restore();
+    kin(sc.headline, W / 2, H * .55, hs * 1.1, mw, p, T, '#fff', sc.col);
   } else {
-    text(sc.headline, W / 2, H * 0.5 + slide, hs * 1.3, '#fff', 700, mw, a);
-    if (num) text(fmtNum(num, cnt), W / 2, H * 0.75, u * 0.1, col, 900, mw, a);
+    kin(sc.headline, W / 2, H * .45, hs * 1.3, mw, p, T, '#fff', sc.col);
+    if (sc.num) {
+      const cnt = ease(p / Math.min(2.5, sc.d * .7));
+      ctx.globalAlpha = ease((p - .5) / .4);
+      txt(fmtNum(sc.num, cnt), W / 2, H * .72, fit(fmtNum(sc.num, 1), u * .14, 900, mw), sc.col, 900);
+      ctx.globalAlpha = 1;
+    }
   }
+  if (!listOk) chips(sc, p, T, u);
+  ctx.restore();
+  ctx.globalAlpha = 1;
+  if (outA < 1) { ctx.fillStyle = 'rgba(9,11,20,' + ((1 - outA) * .85) + ')'; ctx.fillRect(0, 0, W, H); }
+  if (!audio.paused && p0 >= 0 && p0 < .5) {
+    const q = ease(p0 / .5);
+    ctx.globalAlpha = .85 * (1 - q * .6);
+    ctx.fillStyle = sc.col;
+    ctx.fillRect(-W * .5 + q * W * 1.6, 0, W * .5, H);
+    ctx.globalAlpha = 1;
+  }
+  ctx.fillStyle = sc.col;
+  ctx.fillRect(0, 0, W * clamp(p0 / sc.d), 8);
 }
 function loop() {
   const t = audio.currentTime || 0;
@@ -227,13 +425,15 @@ seek.oninput = () => { audio.currentTime = (seek.value / 1000) * (dur || 1); };
     if (!Array.isArray(raw) || !raw.length) throw new Error('No scenes. Analyze scenes first.');
     scenes = raw.map(s => {
       const kw = Array.isArray(s.keywords) ? s.keywords : (s.keywords ? String(s.keywords).split(',') : []);
-      const ok = typeof s.color === 'string' && /^#[0-9a-f]{3,8}$/i.test(s.color.trim());
-      return {
+      const ok = typeof s.color === 'string' && /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(s.color.trim());
+      const x = {
         s: toSec(s.start), e: toSec(s.end), headline: s.headline || '',
-        items: kw.map(x => String(x).trim()).filter(Boolean),
+        items: kw.map(k => String(k).trim()).filter(Boolean),
         num: parseNum(s.big_number), motion: s.motion || 'headline',
         col: ok ? s.color.trim() : (MOODS[s.mood] || MOODS.neutral)
       };
+      x.d = Math.max(.5, x.e - x.s);
+      return x;
     }).sort((x, y) => x.s - y.s);
     const r = p.aspect_ratio || '16:9';
     if (r === '9:16') { W = 720; H = 1280; } else if (r === '1:1') { W = 1000; H = 1000; }
@@ -254,4 +454,4 @@ seek.oninput = () => { audio.currentTime = (seek.value / 1000) * (dur || 1); };
 })();
 </script>
 </body>
-  </html>
+</html>
